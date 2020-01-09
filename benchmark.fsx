@@ -10,8 +10,8 @@ let exec procName args =
   proc.Start() |> ignore
   proc.WaitForExit()
 
-type DockerMount = { source: string; dest: string; } with
-  member this.ToCommand = sprintf "%s:%s" this.source this.dest
+type DockerMount = { source: string; destination: string; } with
+  member this.ToCommand = sprintf "%s:%s" this.source this.destination
 
 type DockerArgument =
   val name: string
@@ -67,6 +67,8 @@ let stopAndRemoveContainer name =
   exec "docker" (sprintf "container rm %s" name)
 
 let datasetDir = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "dataset")
+let mySqlDatasetDir = System.IO.Path.Combine(datasetDir, "mysql")
+let msSqlDatasetDir = System.IO.Path.Combine(datasetDir, "mssql")
 let tdDir = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "td_data")
 let mappingDir = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "mapping")
 
@@ -75,21 +77,19 @@ let createAndEmptyDirectory path =
   directory.GetFiles() |> Seq.iter (fun x -> x.Delete())
   directory.GetDirectories() |> Seq.iter (fun x -> x.Delete(true))
 
-let withDefaultMounts (argument: DockerArgument) =
+let withMount source destination (argument: DockerArgument) =
   argument
-    .WithMount({ source = datasetDir; dest = "/benchmark/dataset"})
-    .WithMount({ source = tdDir; dest = "/benchmark/td_data"})
-    .WithMount({ source = mappingDir; dest = "/benchmark/mapping"})
+    .WithMount({ source = source; destination = destination })
 
 let startMySql () =
   startContainerDetached
     (DockerArgument("db-mysql", "mysql:latest")
-      |> withDefaultMounts
+      |> withMount mySqlDatasetDir "/benchmark/dataset"
       |> fun x -> x.WithEnv "MYSQL_ROOT_PASSWORD" "psw")
 
-  Threading.Thread.Sleep(30000) // Enough time to start MySQL server
+  Threading.Thread.Sleep(15000) // Enough time to start MySQL server
 
-  IO.DirectoryInfo(datasetDir).GetFiles()
+  IO.DirectoryInfo(mySqlDatasetDir).GetFiles()
     |> Seq.filter (fun x -> x.Extension = ".sql")
     |> Seq.iter (fun x ->
       execInContainer
@@ -100,11 +100,15 @@ let startMySql () =
 let runBenchmark prodCount =
   printfn " --- Running benchmark with prod count of %d ---" prodCount
 
-  [datasetDir; tdDir; mappingDir] |> List.iter createAndEmptyDirectory
+  [datasetDir; mySqlDatasetDir; msSqlDatasetDir; tdDir; mappingDir] |> List.iter createAndEmptyDirectory
 
   commandInNewContainer
-    (DockerArgument("bsbm-generate", "mchaloupka/bsbm-r2rml:latest") |> withDefaultMounts)
-    (sprintf "bash -c \"./generate -pc %d -s sql ; cp ./dataset/* /benchmark/dataset ; cp ./td_data/* /benchmark/td_data\"" prodCount)
+    (DockerArgument("bsbm-generate", "mchaloupka/bsbm-r2rml:latest")
+      |> withMount tdDir "/bsbm/td_data"
+      |> withMount mySqlDatasetDir "/bsbm/dataset"
+      |> withMount msSqlDatasetDir "/bsbm/dataset-1"
+      |> withMount mappingDir "/benchmark/mapping")
+    (sprintf "bash -c \"./generate -pc %d -s sql -s mssql ; cp /bsbm/rdb2rdf/mapping.ttl /benchmark/mapping\"" prodCount)
   
   try
     startMySql()
