@@ -10,6 +10,10 @@ let exec procName args =
   proc.Start() |> ignore
   proc.WaitForExit()
 
+type Databases =
+  | MsSql
+  | MySql
+
 type DockerMount = { source: string; destination: string; } with
   member this.ToCommand = sprintf "%s:%s" this.source this.destination
 
@@ -81,23 +85,41 @@ let withMount source destination (argument: DockerArgument) =
   argument
     .WithMount({ source = source; destination = destination })
 
-let startMySql () =
-  startContainerDetached
-    (DockerArgument("db-mysql", "mysql:latest")
-      |> withMount mySqlDatasetDir "/benchmark/dataset"
-      |> fun x -> x.WithEnv "MYSQL_ROOT_PASSWORD" "psw")
+let startDatabaseContainer = function
+  | MsSql ->
+    startContainerDetached
+      (DockerArgument("database", "mcr.microsoft.com/mssql/server:2017-latest")
+        |> withMount msSqlDatasetDir "/benchmark/dataset"
+        |> fun x -> x.WithEnv "ACCEPT_EULA" "Y"
+        |> fun x -> x.WithEnv "SA_PASSWORD" "p@ssw0rd")
 
-  Threading.Thread.Sleep(15000) // Enough time to start MySQL server
+    Threading.Thread.Sleep(15000) // Enough time to start MSSQL server
 
-  IO.DirectoryInfo(mySqlDatasetDir).GetFiles()
-    |> Seq.filter (fun x -> x.Extension = ".sql")
-    |> Seq.iter (fun x ->
-      execInContainer
-        "db-mysql"
-        (sprintf "mysql -u root -ppsw -e \"source /benchmark/dataset/%s\"" x.Name)
-    )  
+    IO.DirectoryInfo(msSqlDatasetDir).GetFiles()
+      |> Seq.filter (fun x -> x.Extension = ".sql")
+      |> Seq.iter (fun x ->
+        execInContainer
+          "database"
+          (sprintf "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P p@ssw0rd -i /benchmark/dataset/%s\"" x.Name)
+      )
+      
+  | MySql ->
+    startContainerDetached
+      (DockerArgument("database", "mysql:latest")
+        |> withMount mySqlDatasetDir "/benchmark/dataset"
+        |> fun x -> x.WithEnv "MYSQL_ROOT_PASSWORD" "psw")
 
-let runBenchmark prodCount =
+    Threading.Thread.Sleep(15000) // Enough time to start MySQL server
+
+    IO.DirectoryInfo(mySqlDatasetDir).GetFiles()
+      |> Seq.filter (fun x -> x.Extension = ".sql")
+      |> Seq.iter (fun x ->
+        execInContainer
+          "database"
+          (sprintf "mysql -u root -ppsw -e \"source /benchmark/dataset/%s\"" x.Name)
+      )
+
+let runBenchmark databases prodCount =
   printfn " --- Running benchmark with prod count of %d ---" prodCount
 
   [datasetDir; mySqlDatasetDir; msSqlDatasetDir; tdDir; mappingDir] |> List.iter createAndEmptyDirectory
@@ -110,11 +132,14 @@ let runBenchmark prodCount =
       |> withMount mappingDir "/benchmark/mapping")
     (sprintf "bash -c \"./generate -pc %d -s sql -s mssql ; cp /bsbm/rdb2rdf/mapping.ttl /benchmark/mapping\"" prodCount)
   
-  try
-    startMySql()
+  databases |> List.iter (fun database ->
+    try
+      startDatabaseContainer database
 
-    // TODO: Start endpoint, perform benchmark
-  finally
-    stopAndRemoveContainer "db-mysql"
+      // TODO: Start endpoint, perform benchmark
+    finally
+      stopAndRemoveContainer "database"
+  )
   
-[ 20; 1000000 ] |> List.iter runBenchmark
+[ 20 ]
+|> List.iter (runBenchmark [ MsSql; MySql ])
