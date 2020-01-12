@@ -22,7 +22,7 @@ type Databases =
   | MySql
 
 type DockerMount = { source: string; destination: string; } with
-  member this.ToCommand = sprintf "%s:%s" this.source this.destination
+  member this.ToCommand = sprintf "\"%s\":\"%s\"" this.source this.destination
 
 type DockerArgument =
   val name: string
@@ -44,7 +44,7 @@ type DockerArgument =
     let envCommand =
       this.env
       |> Map.toList
-      |> List.map (fun (k, v) -> sprintf "-e %s=%s" k v)
+      |> List.map (fun (k, v) -> sprintf "-e \"%s\"=\"%s\"" k v)
       |> String.concat " "
 
     let portsCommand =
@@ -116,6 +116,7 @@ let startDatabaseContainer = function
     |> withMount msSqlDatasetDir "/benchmark/dataset"
     |> withEnv "ACCEPT_EULA" "Y"
     |> withEnv "SA_PASSWORD" "p@ssw0rd"
+    |> withPort 1433 1433
     |> startContainerDetached
 
     Threading.Thread.Sleep(15000) // Enough time to start MSSQL server
@@ -145,6 +146,14 @@ let startDatabaseContainer = function
           (sprintf "mysql -u root -ppsw -e \"source /benchmark/dataset/%s\"" x.Name)
       )
 
+let startEviEndpoint () =
+  DockerArgument("endpoint", "mchaloupka/slp.evi:latest")
+  |> withMount mappingDir "/benchmark/mapping"
+  |> withEnv "EVI_STORAGE__MAPPINGFILEPATH" "/benchmark/mapping/mapping.ttl"
+  |> withEnv "EVI_STORAGE__CONNECTIONSTRING" "Server=host.docker.internal,1433;Database=benchmark;User Id=sa;Password=p@ssw0rd"
+  |> withPort 5000 80
+  |> startContainerDetached
+
 let runBenchmark databases prodCount =
   printfn " --- Running benchmark with prod count of %d ---" prodCount
 
@@ -161,15 +170,22 @@ let runBenchmark databases prodCount =
   databases |> List.iter (fun database ->
     try
       startDatabaseContainer database
+      
+      try
+        startEviEndpoint ()
 
-      // TODO: Start endpoint, perform benchmark
+        // TODO: Perform benchmark
+        // TODO: Collect results
+      finally
+        stopAndRemoveContainer "endpoint"
+        ()
     finally
       stopAndRemoveContainer "database"
       ()
   )
   
 [ 20; ]
-|> List.iter (runBenchmark [ MsSql; MySql ])
+|> List.iter (runBenchmark [ MsSql ])
 
 // The following should start ontop docker:
 // docker run --rm -it -v {...}:/opt/ontop/jdbc -v {...}:/static -e ONTOP_MAPPING_FILE=/static/mapping.ttl -e ONTOP_PROPERTIES_FILE=/static/ontop.mysql.properties -p 8080:8080 ontop/ontop-endpoint
