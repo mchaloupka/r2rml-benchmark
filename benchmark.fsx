@@ -10,6 +10,13 @@ let exec procName args =
   proc.Start() |> ignore
   proc.WaitForExit()
 
+  if proc.ExitCode <> 0 then 
+    let error = sprintf "Error: %d" proc.ExitCode
+    printfn "%s" error
+    raise (Exception(error))
+  else
+    printfn "OK"
+
 type Databases =
   | MsSql
   | MySql
@@ -22,10 +29,11 @@ type DockerArgument =
   val imageName: string
   val mounts: DockerMount list
   val env: Map<string,string>
+  val ports: Map<int,int>
 
-  new(name: string, imageName: string) = DockerArgument(name, imageName, [], Map.empty)
-  new(name: string, imageName: string, mounts: DockerMount list, env: Map<string,string>) =
-    { name = name; imageName = imageName; mounts = mounts; env = env }
+  new(name: string, imageName: string) = DockerArgument(name, imageName, [], Map.empty, Map.empty)
+  new(name: string, imageName: string, mounts: DockerMount list, env: Map<string,string>, ports: Map<int,int>) =
+    { name = name; imageName = imageName; mounts = mounts; env = env; ports = ports }
 
   member this.ToCommand =
     let mountCommand =
@@ -39,19 +47,29 @@ type DockerArgument =
       |> List.map (fun (k, v) -> sprintf "-e %s=%s" k v)
       |> String.concat " "
 
+    let portsCommand =
+      this.ports
+      |> Map.toList
+      |> List.map (fun (k, v) -> sprintf "-p %d:%d" k v)
+      |> String.concat " "
+
     [
       "--name"
       this.name
       mountCommand
       envCommand
+      portsCommand
       this.imageName
-    ] |> String.concat " "
+    ] |> List.filter (String.IsNullOrEmpty >> not) |> String.concat " "
    
   member this.WithMount mount =
-    DockerArgument(this.name, this.imageName, mount :: this.mounts, this.env)
+    DockerArgument(this.name, this.imageName, mount :: this.mounts, this.env, this.ports)
 
   member this.WithEnv key value =
-    DockerArgument(this.name, this.imageName, this.mounts, this.env.Add(key, value))
+    DockerArgument(this.name, this.imageName, this.mounts, this.env.Add(key, value), this.ports)
+
+  member this.WithPorts host guest =
+    DockerArgument(this.name, this.imageName, this.mounts, this.env, this.ports.Add(host, guest))
 
 let startContainerDetached (argument: DockerArgument) =
   printfn "Starting container %s" argument.name
@@ -85,13 +103,20 @@ let withMount source destination (argument: DockerArgument) =
   argument
     .WithMount({ source = source; destination = destination })
 
+let withEnv envName envValue (argument: DockerArgument) =
+  argument
+    .WithEnv envName envValue
+
+let withPort host guest (argument: DockerArgument) =
+  argument.WithPorts host guest
+
 let startDatabaseContainer = function
   | MsSql ->
-    startContainerDetached
-      (DockerArgument("database", "mcr.microsoft.com/mssql/server:2017-latest")
-        |> withMount msSqlDatasetDir "/benchmark/dataset"
-        |> fun x -> x.WithEnv "ACCEPT_EULA" "Y"
-        |> fun x -> x.WithEnv "SA_PASSWORD" "p@ssw0rd")
+    DockerArgument("database", "mcr.microsoft.com/mssql/server:2017-latest")
+    |> withMount msSqlDatasetDir "/benchmark/dataset"
+    |> withEnv "ACCEPT_EULA" "Y"
+    |> withEnv "SA_PASSWORD" "p@ssw0rd"
+    |> startContainerDetached
 
     Threading.Thread.Sleep(15000) // Enough time to start MSSQL server
 
@@ -104,10 +129,11 @@ let startDatabaseContainer = function
       )
       
   | MySql ->
-    startContainerDetached
-      (DockerArgument("database", "mysql:latest")
-        |> withMount mySqlDatasetDir "/benchmark/dataset"
-        |> fun x -> x.WithEnv "MYSQL_ROOT_PASSWORD" "psw")
+    DockerArgument("database", "mysql:latest")
+    |> withMount mySqlDatasetDir "/benchmark/dataset"
+    |> withEnv "MYSQL_ROOT_PASSWORD" "psw"
+    |> withPort 3306 3306
+    |> startContainerDetached
 
     Threading.Thread.Sleep(15000) // Enough time to start MySQL server
 
@@ -139,7 +165,12 @@ let runBenchmark databases prodCount =
       // TODO: Start endpoint, perform benchmark
     finally
       stopAndRemoveContainer "database"
+      ()
   )
   
-[ 20 ]
+[ 20; ]
 |> List.iter (runBenchmark [ MsSql; MySql ])
+
+// The following should start ontop docker:
+// docker run --rm -it -v {...}:/opt/ontop/jdbc -v {...}:/static -e ONTOP_MAPPING_FILE=/static/mapping.ttl -e ONTOP_PROPERTIES_FILE=/static/ontop.mysql.properties -p 8080:8080 ontop/ontop-endpoint
+// Currently it does not work (see https://github.com/ontop/ontop/issues/324)
