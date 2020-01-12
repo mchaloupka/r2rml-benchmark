@@ -93,6 +93,7 @@ let mySqlDatasetDir = System.IO.Path.Combine(datasetDir, "mysql")
 let msSqlDatasetDir = System.IO.Path.Combine(datasetDir, "mssql")
 let tdDir = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "td_data")
 let mappingDir = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "mapping")
+let outputDir = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "output")
 
 let createAndEmptyDirectory path =
   let directory = IO.Directory.CreateDirectory(path)
@@ -157,7 +158,7 @@ let startEviEndpoint () =
 let runBenchmark databases prodCount =
   printfn " --- Running benchmark with prod count of %d ---" prodCount
 
-  [datasetDir; mySqlDatasetDir; msSqlDatasetDir; tdDir; mappingDir] |> List.iter createAndEmptyDirectory
+  [datasetDir; mySqlDatasetDir; msSqlDatasetDir; tdDir; mappingDir; outputDir] |> List.iter createAndEmptyDirectory
 
   commandInNewContainer
     (DockerArgument("bsbm-generate", "mchaloupka/bsbm-r2rml:latest")
@@ -174,14 +175,18 @@ let runBenchmark databases prodCount =
       try
         startEviEndpoint ()
 
+        commandInNewContainer
+          (DockerArgument("bsbm-generate", "mchaloupka/bsbm-r2rml:latest")
+            |> withMount tdDir "/bsbm/td_data"
+            |> withMount outputDir "/benchmark")
+          (sprintf "bash -c \"./testdriver -mt 16 http://host.docker.internal:5000/api/sparql ; mv benchmark_result.xml /benchmark/result.xml ; mv run.log /benchmark/run.log\"")
+
         // TODO: Perform benchmark
         // TODO: Collect results
       finally
         stopAndRemoveContainer "endpoint"
-        ()
     finally
       stopAndRemoveContainer "database"
-      ()
   )
   
 [ 20; ]
