@@ -1,0 +1,97 @@
+[PrefixDeclaration]
+obda:		https://w3id.org/obda/vocabulary#
+xsd:		http://www.w3.org/2001/XMLSchema#
+owl:		http://www.w3.org/2002/07/owl#
+rdf:		http://www.w3.org/1999/02/22-rdf-syntax-ns#
+rdfs:		http://www.w3.org/2000/01/rdf-schema#
+
+[MappingDeclaration] @collection [[
+mappingId	mapping--2055356853
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Offer{nr}> a <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/Offer> ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/validTo> {validTo} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/deliveryDays> {deliveryDays} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/price> {price} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/validFrom> {validFrom} ; <http://purl.org/dc/elements/1.1/date> {publishDate} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/offerWebpage> <{offerWebpage}> . 
+source		SELECT * FROM offer
+
+mappingId	mapping-join--1832750651
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Offer{nr}> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/producer> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Producer{nr}> . 
+source		SELECT * FROM (SELECT * FROM offer) AS child, (SELECT * FROM producer) AS parent WHERE child.producer=parent.nr
+
+mappingId	mapping-join-430776607
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Offer{nr}> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/product> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Product{nr}> . 
+source		SELECT * FROM (SELECT * FROM offer) AS child, (SELECT * FROM product) AS parent WHERE child.product=parent.nr
+
+mappingId	mapping-join-1098342551
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Offer{nr}> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/vendor> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Vendor{nr}> . 
+source		SELECT * FROM (SELECT * FROM offer) AS child, (SELECT * FROM vendor) AS parent WHERE child.vendor=parent.nr
+
+mappingId	mapping-join-2054835164
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Offer{nr}> <http://purl.org/dc/elements/1.1/publisher> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Vendor{nr}> . 
+source		SELECT * FROM (SELECT * FROM offer) AS child, (SELECT * FROM vendor) AS parent WHERE child.publisher=parent.nr
+
+mappingId	mapping--1097649210
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Reviewer{nr}> a <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/Person> ; <http://purl.org/dc/elements/1.1/publisher> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/RatingSite{publisher}> ; <http://purl.org/dc/elements/1.1/date> {publishDate} ; <http://xmlns.com/foaf/0.1/mbox_sha1sum> {mbox_sha1sum} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/country> <http://downlode.org/rdf/iso-3166/countries#{country}> ; <http://xmlns.com/foaf/0.1/name> {name} . 
+source		SELECT * FROM person
+
+mappingId	mapping-join--2037177711
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Product{product}> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productFeature> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/ProductFeature{nr}> . 
+source		SELECT * FROM (SELECT * FROM productfeatureproduct) AS child, (SELECT * FROM productfeature) AS parent WHERE child.productFeature=parent.nr
+
+mappingId	mapping-1827117014
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Product{nr}> a <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/Product> ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual5> {propertyTex5} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyNumeric1> {propertyNum1} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual6> {propertyTex6} , {propertyNum6} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyNumeric4> {propertyNum4} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual3> {propertyTex3} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyNumeric5> {propertyNum5} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual4> {propertyTex4} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyNumeric2> {propertyNum2} ; <http://purl.org/dc/elements/1.1/date> {publishDate} ; rdfs:label {label} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual1> {propertyTex1} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyNumeric3> {propertyNum3} ; rdfs:comment {comment} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual2> {propertyTex2} . 
+source		SELECT * FROM product
+
+mappingId	mapping-join--1037690920
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Product{nr}> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/producer> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Producer{nr}> . 
+source		SELECT * FROM (SELECT * FROM product) AS child, (SELECT * FROM producer) AS parent WHERE child.producer=parent.nr
+
+mappingId	mapping-join--1504781613
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Product{nr}> <http://purl.org/dc/elements/1.1/publisher> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Producer{nr}> . 
+source		SELECT * FROM (SELECT * FROM product) AS child, (SELECT * FROM producer) AS parent WHERE child.publisher=parent.nr
+
+mappingId	mapping--1917316150
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/ProductFeature{nr}> a <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/ProductFeature> ; <http://purl.org/dc/elements/1.1/date> {publishDate} ; <http://purl.org/dc/elements/1.1/publisher> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/StandardizationInstitution{publisher}> ; rdfs:comment {comment} ; rdfs:label {label} . 
+source		SELECT * FROM productfeature
+
+mappingId	mapping-1308962242
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Vendor{nr}> a <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/Vendor> ; <http://xmlns.com/foaf/0.1/homepage> <{homepage}> ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/country> <http://downlode.org/rdf/iso-3166/countries#{country}> ; rdfs:comment {comment} ; rdfs:label {label} ; <http://purl.org/dc/elements/1.1/date> {publishDate} . 
+source		SELECT * FROM vendor
+
+mappingId	mapping-join-849054258
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Vendor{nr}> <http://purl.org/dc/elements/1.1/publisher> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Vendor{nr}> . 
+source		SELECT * FROM (SELECT * FROM vendor) AS child, (SELECT * FROM vendor) AS parent WHERE child.publisher=parent.nr
+
+mappingId	mapping--1215177687
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Review{nr}> a <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/Review> ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/rating1> {rating1} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/rating2> {rating2} ; <http://purl.org/dc/elements/1.1/publisher> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/RatingSite{publisher}> ; <http://purl.org/dc/elements/1.1/title> {title}@en ; <http://purl.org/dc/elements/1.1/date> {publishDate} ; <http://purl.org/stuff/rev#text> {text}@en ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/rating3> {rating3} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/rating4> {rating4} ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/reviewDate> {reviewDate} . 
+source		SELECT * FROM review
+
+mappingId	mapping-join--1933366558
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Review{nr}> <http://purl.org/stuff/rev#reviewer> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Reviewer{nr}> . 
+source		SELECT * FROM (SELECT * FROM review) AS child, (SELECT * FROM person) AS parent WHERE child.person=parent.nr
+
+mappingId	mapping-join-116822887
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Review{nr}> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/reviewFor> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Product{nr}> . 
+source		SELECT * FROM (SELECT * FROM review) AS child, (SELECT * FROM product) AS parent WHERE child.product=parent.nr
+
+mappingId	mapping-join--2144738165
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Review{nr}> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/producer> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Producer{nr}> . 
+source		SELECT * FROM (SELECT * FROM review) AS child, (SELECT * FROM producer) AS parent WHERE child.producer=parent.nr
+
+mappingId	mapping--110868929
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Producer{nr}> a <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/Producer> ; rdfs:comment {comment} ; rdfs:label {label} ; <http://purl.org/dc/elements/1.1/date> {publishDate} ; <http://xmlns.com/foaf/0.1/homepage> <{homepage}> ; <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/country> <http://downlode.org/rdf/iso-3166/countries#{country}> . 
+source		SELECT * FROM producer
+
+mappingId	mapping-join--393016152
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Producer{nr}> <http://purl.org/dc/elements/1.1/publisher> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Producer{nr}> . 
+source		SELECT * FROM (SELECT * FROM producer) AS child, (SELECT * FROM producer) AS parent WHERE child.publisher=parent.nr
+
+mappingId	mapping-join-1206506968
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/Product{product}> a <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/ProductType{nr}> . 
+source		SELECT * FROM (SELECT * FROM producttypeproduct) AS child, (SELECT * FROM producttype) AS parent WHERE child.productType=parent.nr
+
+mappingId	mapping--1062649371
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/ProductType{nr}> a <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/ProductType> ; rdfs:label {label} ; rdfs:comment {comment} ; <http://purl.org/dc/elements/1.1/publisher> <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/StandardizationInstitution{publisher}> ; <http://purl.org/dc/elements/1.1/date> {publishDate} . 
+source		SELECT * FROM producttype
+
+mappingId	mapping-join--308066365
+target		<http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/ProductType{nr}> rdfs:subClassOf <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/ProductType{nr}> . 
+source		SELECT * FROM (SELECT * FROM producttype) AS child, (SELECT * FROM producttype) AS parent WHERE child.parent=parent.nr
+]]
+

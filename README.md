@@ -10,5 +10,5 @@ Has been currently tested only on Windows. Should be easy to add support for oth
 ## Running the benchmark
 To run the benchmark, run the following commands:
 ```
-dotnet fsi benchmark.fsx
+dotnet fsi main.fsx
 ```
