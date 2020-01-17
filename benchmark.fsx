@@ -52,7 +52,7 @@ let runBenchmark databases endpoints clientCounts prodCount =
               |> withMount tdDir "/bsbm/td_data"
               |> withMount outputDir "/benchmark"
               |> commandInNewContainer
-                (sprintf "bash -c \"./testdriver -mt %d http://host.docker.internal:%d%s ; mv benchmark_result.xml /benchmark/result%s.xml ; mv run.log /benchmark/run%s.log\"" clientCount endpoint.port endpoint.endpointUrl outputSuffix outputSuffix)
+                (sprintf "bash -c \"./testdriver -mt %d -runs 100 -w 30 http://host.docker.internal:%d%s ; mv benchmark_result.xml /benchmark/result%s.xml ; mv run.log /benchmark/run%s.log\"" clientCount endpoint.port endpoint.endpointUrl outputSuffix outputSuffix)
 
             finally
               stopAndRemoveContainer endpoint.dockerName

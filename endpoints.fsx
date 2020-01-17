@@ -19,24 +19,52 @@ type Endpoint = {
   start: Databases -> unit;
 }
 
-let eviEndpoint = {
-  name="evi";
-  port=5000;
-  dockerName="evi-endpoint";
-  endpointUrl="/api/sparql";
-  supportedDatabases=[MsSql];
-  start=
-    function
-      | MsSql ->
-        inDocker "evi-endpoint" "mchaloupka/slp.evi:latest"
-        |> withMount mappingDir "/benchmark/mapping"
-        |> withEnv "EVI_STORAGE__MAPPINGFILEPATH" "/benchmark/mapping/mapping.ttl"
-        |> withEnv "EVI_STORAGE__CONNECTIONSTRING" "Server=host.docker.internal,1433;Database=benchmark;User Id=sa;Password=p@ssw0rd"
-        |> withPort 5000 80
-        |> startContainerDetached
-      | _ -> raise (new NotSupportedException())
-}
+let eviEndpoint () = 
+  let dockerName = "evi-endpoint"
+  let port = 5000
+  
+  {
+    name="evi";
+    port=port;
+    dockerName=dockerName;
+    endpointUrl="/api/sparql";
+    supportedDatabases=[MsSql];
+    start=
+      function
+        | MsSql ->
+          inDocker dockerName "mchaloupka/slp.evi:latest"
+          |> withMount mappingDir "/benchmark/mapping"
+          |> withEnv "EVI_STORAGE__MAPPINGFILEPATH" "/benchmark/mapping/mapping.ttl"
+          |> withEnv "EVI_STORAGE__CONNECTIONSTRING" "Server=host.docker.internal,1433;Database=benchmark;User Id=sa;Password=p@ssw0rd"
+          |> withPort port 80
+          |> startContainerDetached
 
-// The following should start ontop docker:
-// docker run --rm -it -v {...}:/opt/ontop/jdbc -v {...}:/static -e ONTOP_MAPPING_FILE=/static/mapping.ttl -e ONTOP_PROPERTIES_FILE=/static/ontop.mysql.properties -p 8080:8080 ontop/ontop-endpoint
-// Currently it does not work (see https://github.com/ontop/ontop/issues/324)
+          Threading.Thread.Sleep(5000)
+        | _ -> raise (new NotSupportedException())
+  }
+
+let ontopEndpoint () =
+  let dockerName = "ontop-endpoint"
+  let port = 5001
+
+  let propertiesFile = function
+  | MsSql -> "/benchmark/static/ontop.mssql.properties"
+  | MySql -> "/benchmark/static/ontop.mysql.properties"
+
+  {
+    name="ontop";
+    port=port;
+    dockerName=dockerName;
+    endpointUrl="/sparql";
+    supportedDatabases=[MsSql;MySql];
+    start=fun database ->
+      inDocker dockerName "ontop/ontop-endpoint"
+      |> withMount staticDir "/benchmark/static"
+      |> withMount jdbcDir "/opt/ontop/jdbc"
+      |> withEnv "ONTOP_MAPPING_FILE" "/benchmark/static/mapping-ontop.obda"
+      |> withEnv "ONTOP_PROPERTIES_FILE" (propertiesFile database)
+      |> withPort port 8080
+      |> startContainerDetached
+
+      Threading.Thread.Sleep(15000)
+  }

@@ -10,12 +10,22 @@ open Benchmark
 
 createAndEmptyDirectory outputDir
 
-[ 20; ]                  // Product counts
+// Product counts
+[ 20; ]                  
 |> List.iter (
   runBenchmark 
-    [ MsSql; MySql ]     // Databases to use
-    [ eviEndpoint ]      // Endpoints to benchmark
-    [ 1; 32 ]            // Client counts
+    // Databases to use
+    [ 
+      MsSql;
+      MySql
+    ]     
+    // Endpoints to benchmark
+    [
+      eviEndpoint();
+      ontopEndpoint()
+    ]      
+    // Client counts
+    [ 1; 32 ]            
 )
 
 // TODO: Generate summary
