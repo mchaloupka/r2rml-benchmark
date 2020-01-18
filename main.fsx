@@ -21,8 +21,8 @@ createAndEmptyDirectory outputDir
     ]     
     // Endpoints to benchmark
     [
-      eviEndpoint();
-      ontopEndpoint()
+      eviEndpoint;
+      ontopEndpoint
     ]      
     // Client counts
     [ 1; 32 ]            

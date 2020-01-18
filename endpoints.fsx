@@ -19,7 +19,7 @@ type Endpoint = {
   start: Databases -> unit;
 }
 
-let eviEndpoint () = 
+let eviEndpoint = 
   let dockerName = "evi-endpoint"
   let port = 5000
   
@@ -43,7 +43,7 @@ let eviEndpoint () =
         | _ -> raise (new NotSupportedException())
   }
 
-let ontopEndpoint () =
+let ontopEndpoint =
   let dockerName = "ontop-endpoint"
   let port = 5001
 
