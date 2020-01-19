@@ -5,6 +5,10 @@ module Benchmark
 #load "database.fsx"
 #load "endpoints.fsx"
 
+open System.IO
+open System.Text.RegularExpressions
+open System.Xml
+
 open Shell
 open Docker
 open Database
@@ -64,4 +68,94 @@ let runBenchmark databases endpoints clientCounts prodCount =
               stopAndRemoveContainer endpoint.dockerName
       finally
         stopAndRemoveContainer databaseDockerName
+  )
+
+let (|Regex|_|) pattern input =
+  let m = Regex.Match(input, pattern)
+  if m.Success then Some(List.tail [ for g in m.Groups -> g.Value ])
+  else None
+
+let generateSummary () =
+  let fileSplit (fileInfo: FileInfo) =
+    match fileInfo.Name with
+    | Regex @"result-([^-]+)-([^-]+)-([^-]+)-([^-]+).xml" [ db; productCount; endpoint; clientCount ] ->
+      Some((fileInfo, db, productCount, endpoint, clientCount))
+    | _ -> None
+
+  let files =
+    DirectoryInfo(outputDir).GetFiles()
+    |> Seq.choose fileSplit
+
+  let loadQmph (fileInfo: FileInfo) =
+    let doc = XmlDocument()
+    doc.Load fileInfo.FullName
+
+    let qmphNode =
+      doc.SelectNodes "/bsbm/querymix/qmph/text()"
+      |> Seq.cast<XmlNode>
+      |> Seq.map (fun n -> n.Value)
+      |> Seq.head
+
+    let queryQmphNodes =
+      doc.SelectNodes "/bsbm/queries/query/qps/text()"
+      |> Seq.cast<XmlNode>
+      |> Seq.map (fun n ->
+        let value = n.Value
+        let queryNode = n.ParentNode.ParentNode
+        let queryNr = 
+          queryNode.Attributes
+          |> Seq.cast<XmlAttribute> 
+          |> Seq.filter (fun x -> x.LocalName = "nr")
+          |> Seq.map (fun x -> x.Value)
+          |> Seq.head
+
+        queryNr, value
+      )
+      |> Map.ofSeq
+
+    qmphNode, queryQmphNodes
+
+  let queryNrs =
+    seq { 1..12 } 
+    |> Seq.map (fun x -> x.ToString()) 
+    |> Seq.toList
+
+  let summaryRows = 
+    files 
+    |> Seq.map (fun (fileInfo, db, productCount, endpoint, clientCount) ->
+      let (qmph, queryQmph) = loadQmph fileInfo
+
+      let queriesRecord =
+        queryNrs
+        |> List.map (fun nr -> 
+          match queryQmph.TryGetValue nr with 
+          | true, value -> value
+          | false, _ -> ""
+        )
+
+      let rowRecords = 
+        [
+          db
+          productCount
+          endpoint
+          clientCount
+          qmph
+        ] @ queriesRecord
+
+      rowRecords |> String.concat ",")
+    |> Seq.toList
+  
+  let summaryHeader =
+    [
+      "Database"
+      "ProductCount"
+      "Endpoint"
+      "ClientCount"
+      "TotalQmph"
+    ] @ (queryNrs |> List.map (sprintf "Qps-%s"))
+    |> String.concat ","
+
+  File.WriteAllLines(
+    Path.Combine(outputDir, "summary.csv"),
+    (summaryHeader :: summaryRows)
   )

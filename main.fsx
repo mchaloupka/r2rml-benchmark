@@ -28,4 +28,4 @@ createAndEmptyDirectory outputDir
     [ 1; 32 ]            
 )
 
-// TODO: Generate summary
+generateSummary ()
