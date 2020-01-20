@@ -31,9 +31,10 @@ After that, generate the dataset (replace the number with desired prod count)
 Benchmark.generateData 20;;
 ```
 
-With the generated dataset, you can easily start the database
+With the generated dataset, you can easily start the database in a docker network
 ```
 open Database
+createNetwork benchmarkNetwork
 startDatabaseContainer Databases.MsSql
 ;;
 ```
@@ -50,10 +51,11 @@ And to run a benchmark on it (replace the number with desired client count)
 Benchmark.runSingleBenchmark "log-file-suffix" 1 eviEndpoint;;
 ```
 
-In the end, you have to also stop the docker containers:
+In the end, you have to also stop the docker containers and remove network:
 ```
 Docker.stopAndRemoveContainer eviEndpoint.dockerName
 Docker.stopAndRemoveContainer databaseDockerName
+removeNetwork benchmarkNetwork
 ;;
 ```
 

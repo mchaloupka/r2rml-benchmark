@@ -12,7 +12,8 @@ open Database
 
 type Endpoint = {
   name: string;
-  port: int;
+  outerPort: int;
+  innerPort: int;
   dockerName: string;
   endpointUrl: string;
   supportedDatabases: Databases list;
@@ -21,11 +22,13 @@ type Endpoint = {
 
 let eviEndpoint = 
   let dockerName = "evi-endpoint"
-  let port = 5000
+  let innerPort = 80
+  let outerPort = 5000
   
   {
     name="evi";
-    port=port;
+    innerPort=innerPort;
+    outerPort=outerPort;
     dockerName=dockerName;
     endpointUrl="/api/sparql";
     supportedDatabases=[MsSql];
@@ -35,8 +38,9 @@ let eviEndpoint =
           inDocker dockerName "mchaloupka/slp.evi:latest"
           |> withMount mappingDir "/benchmark/mapping"
           |> withEnv "EVI_STORAGE__MAPPINGFILEPATH" "/benchmark/mapping/mapping.ttl"
-          |> withEnv "EVI_STORAGE__CONNECTIONSTRING" "Server=host.docker.internal,1433;Database=benchmark;User Id=sa;Password=p@ssw0rd"
-          |> withPort port 80
+          |> withEnv "EVI_STORAGE__CONNECTIONSTRING" "Server=database,1433;Database=benchmark;User Id=sa;Password=p@ssw0rd"
+          |> withPort outerPort innerPort
+          |> withNetwork benchmarkNetwork
           |> startContainerDetached
 
           Threading.Thread.Sleep(5000)
@@ -45,7 +49,8 @@ let eviEndpoint =
 
 let ontopEndpoint =
   let dockerName = "ontop-endpoint"
-  let port = 5001
+  let innerPort = 8080
+  let outerPort = 5051
 
   let propertiesFile = function
   | MsSql -> "/benchmark/static/ontop.mssql.properties"
@@ -53,7 +58,8 @@ let ontopEndpoint =
 
   {
     name="ontop";
-    port=port;
+    innerPort=innerPort;
+    outerPort=outerPort;
     dockerName=dockerName;
     endpointUrl="/sparql";
     supportedDatabases=[MsSql;MySql];
@@ -63,7 +69,8 @@ let ontopEndpoint =
       |> withMount jdbcDir "/opt/ontop/jdbc"
       |> withEnv "ONTOP_MAPPING_FILE" "/benchmark/static/mapping-ontop.obda"
       |> withEnv "ONTOP_PROPERTIES_FILE" (propertiesFile database)
-      |> withPort port 8080
+      |> withPort innerPort outerPort
+      |> withNetwork benchmarkNetwork
       |> startContainerDetached
 
       Threading.Thread.Sleep(15000)

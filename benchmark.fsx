@@ -27,8 +27,9 @@ let runSingleBenchmark outputSuffix clientCount endpoint =
   inDocker "bsbm-generate" "mchaloupka/bsbm-r2rml:latest"
   |> withMount tdDir "/bsbm/td_data"
   |> withMount outputDir "/benchmark"
+  |> withNetwork benchmarkNetwork
   |> commandInNewContainer
-    (sprintf "bash -c \"./testdriver -mt %d -runs 100 -w 30 http://host.docker.internal:%d%s ; mv benchmark_result.xml /benchmark/result%s.xml ; mv run.log /benchmark/run%s.log\"" clientCount endpoint.port endpoint.endpointUrl outputSuffix outputSuffix)
+    (sprintf "bash -c \"./testdriver -mt %d -runs 100 -w 30 http://%s:%d%s ; mv benchmark_result.xml /benchmark/result%s.xml ; mv run.log /benchmark/run%s.log\"" clientCount endpoint.dockerName endpoint.innerPort endpoint.endpointUrl outputSuffix outputSuffix)
 
 let runBenchmark databases endpoints clientCounts prodCount =
   printfn " --- Running benchmark with prod count of %d ---" prodCount
@@ -51,23 +52,28 @@ let runBenchmark databases endpoints clientCounts prodCount =
         x.supportedDatabases 
         |> List.contains database)
 
-    if not supportingEndpoints.IsEmpty then 
+    if not supportingEndpoints.IsEmpty then
       try
-        startDatabaseContainer database
+        createNetwork benchmarkNetwork
 
-        for clientCount in clientCounts do
-          for endpoint in supportingEndpoints do
-            try
-              endpoint.start database
-  
-              let outputSuffix = sprintf "-%s-%d-%s-%d" (database |> dbName) prodCount endpoint.name clientCount
-   
-              runSingleBenchmark outputSuffix clientCount endpoint
+        try
+          startDatabaseContainer database
 
-            finally
-              stopAndRemoveContainer endpoint.dockerName
+          for clientCount in clientCounts do
+            for endpoint in supportingEndpoints do
+              try
+                endpoint.start database
+    
+                let outputSuffix = sprintf "-%s-%d-%s-%d" (database |> dbName) prodCount endpoint.name clientCount
+     
+                runSingleBenchmark outputSuffix clientCount endpoint
+
+              finally
+                stopAndRemoveContainer endpoint.dockerName
+        finally
+          stopAndRemoveContainer databaseDockerName
       finally
-        stopAndRemoveContainer databaseDockerName
+        removeNetwork benchmarkNetwork        
   )
 
 let (|Regex|_|) pattern input =

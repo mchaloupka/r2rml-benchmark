@@ -25,6 +25,7 @@ let startDatabaseContainer = function
     |> withEnv "ACCEPT_EULA" "Y"
     |> withEnv "SA_PASSWORD" "p@ssw0rd"
     |> withPort 1433 1433
+    |> withNetwork benchmarkNetwork
     |> startContainerDetached
 
     Threading.Thread.Sleep(15000) // Enough time to start MSSQL server
@@ -42,6 +43,7 @@ let startDatabaseContainer = function
     |> withMount mySqlDatasetDir "/benchmark/dataset"
     |> withEnv "MYSQL_ROOT_PASSWORD" "psw"
     |> withPort 3306 3306
+    |> withNetwork benchmarkNetwork
     |> startContainerDetached
 
     Threading.Thread.Sleep(15000) // Enough time to start MySQL server
