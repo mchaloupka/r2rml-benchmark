@@ -28,7 +28,7 @@ let startDatabaseContainer = function
     |> withNetwork benchmarkNetwork
     |> startContainerDetached
 
-    Threading.Thread.Sleep(15000) // Enough time to start MSSQL server
+    Threading.Thread.Sleep(60000) // Enough time to start MSSQL server
 
     IO.DirectoryInfo(msSqlDatasetDir).GetFiles()
       |> Seq.filter (fun x -> x.Extension = ".sql")
@@ -46,7 +46,7 @@ let startDatabaseContainer = function
     |> withNetwork benchmarkNetwork
     |> startContainerDetached
 
-    Threading.Thread.Sleep(30000) // Enough time to start MySQL server
+    Threading.Thread.Sleep(60000) // Enough time to start MySQL server
 
     IO.DirectoryInfo(mySqlDatasetDir).GetFiles()
       |> Seq.filter (fun x -> x.Extension = ".sql")
