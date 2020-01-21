@@ -46,13 +46,13 @@ let private toCommand dockerArgument =
     let mountCommand =
       dockerArgument.mounts 
       |> Map.toList
-      |> List.map (fun (k, v) -> sprintf "-v \"%s\":\"%s\"" k v) 
+      |> List.map (fun (k, v) -> sprintf "-v \"%s:%s\"" k v) 
       |> String.concat " "
 
     let envCommand =
       dockerArgument.envVariables
       |> Map.toList
-      |> List.map (fun (k, v) -> sprintf "-e \"%s\"=\"%s\"" k v)
+      |> List.map (fun (k, v) -> sprintf "-e \"%s=%s\"" k v)
       |> String.concat " "
 
     let portsCommand =
