@@ -29,7 +29,7 @@ let runSingleBenchmark outputSuffix clientCount endpoint =
   |> withMount outputDir "/benchmark"
   |> withNetwork benchmarkNetwork
   |> commandInNewContainer
-    (sprintf "bash -c \"./testdriver -mt %d -runs 100 -w 30 http://%s:%d%s ; mv benchmark_result.xml /benchmark/result%s.xml ; mv run.log /benchmark/run%s.log\"" clientCount endpoint.dockerName endpoint.innerPort endpoint.endpointUrl outputSuffix outputSuffix)
+    (sprintf "bash -c \"./testdriver -mt %d -runs 320 -w 64 http://%s:%d%s ; mv benchmark_result.xml /benchmark/result%s.xml ; mv run.log /benchmark/run%s.log\"" clientCount endpoint.dockerName endpoint.innerPort endpoint.endpointUrl outputSuffix outputSuffix)
 
 let runBenchmark databases endpoints clientCounts prodCount =
   printfn " --- Running benchmark with prod count of %d ---" prodCount
