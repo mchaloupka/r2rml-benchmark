@@ -32,7 +32,7 @@ let runSingleBenchmark outputSuffix clientCount endpoint includeLog =
     |> withMount outputDir "/benchmark"
     |> withNetwork benchmarkNetwork
     |> commandInNewContainer
-      (sprintf "bash -c \"./testdriver -mt %d -runs 320 -w 64 http://%s:%d%s && mv benchmark_result.xml /benchmark/result%s.xml %s" clientCount endpoint.dockerName endpoint.innerPort endpoint.endpointUrl outputSuffix persistLogCommand)
+      (sprintf "bash -c \"./testdriver -mt %d -runs 192 -w 32 http://%s:%d%s && mv benchmark_result.xml /benchmark/result%s.xml %s" clientCount endpoint.dockerName endpoint.innerPort endpoint.endpointUrl outputSuffix persistLogCommand)
 
   try
     runBenchmark ()

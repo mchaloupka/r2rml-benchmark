@@ -25,7 +25,7 @@ createAndEmptyDirectory outputDir
       ontopEndpoint
     ]      
     // Client counts
-    [ 1; 2; 4; 8; 16; 32; 64 ]  
+    [ 1; 2; 4; 8; 16; 32 ]  
     // Do not include logs
     false          
 )
