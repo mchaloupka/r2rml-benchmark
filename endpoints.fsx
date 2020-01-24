@@ -11,13 +11,13 @@ open Docker
 open Database
 
 type Endpoint = {
-  name: string;
-  outerPort: int;
-  innerPort: int;
-  dockerName: string;
-  endpointUrl: string;
-  supportedDatabases: Databases list;
-  start: Databases -> unit;
+  name: string
+  outerPort: int
+  innerPort: int
+  dockerName: string
+  endpointUrl: string
+  supportedDatabases: Databases list
+  start: Databases -> unit
 }
 
 let eviEndpoint = 
@@ -26,12 +26,12 @@ let eviEndpoint =
   let outerPort = 5000
   
   {
-    name="evi";
-    innerPort=innerPort;
-    outerPort=outerPort;
-    dockerName=dockerName;
-    endpointUrl="/api/sparql";
-    supportedDatabases=[MsSql];
+    name="evi"
+    innerPort=innerPort
+    outerPort=outerPort
+    dockerName=dockerName
+    endpointUrl="/api/sparql"
+    supportedDatabases=[MsSql]
     start=
       function
         | MsSql ->
@@ -43,7 +43,7 @@ let eviEndpoint =
           |> withNetwork benchmarkNetwork
           |> startContainerDetached
 
-          Threading.Thread.Sleep(5000)
+          Threading.Thread.Sleep(60000)
         | _ -> raise (new NotSupportedException())
   }
 
@@ -57,12 +57,12 @@ let ontopEndpoint =
   | MySql -> "/benchmark/static/ontop.mysql.properties"
 
   {
-    name="ontop";
-    innerPort=innerPort;
-    outerPort=outerPort;
-    dockerName=dockerName;
-    endpointUrl="/sparql";
-    supportedDatabases=[MsSql;MySql];
+    name="ontop"
+    innerPort=innerPort
+    outerPort=outerPort
+    dockerName=dockerName
+    endpointUrl="/sparql"
+    supportedDatabases=[MsSql; MySql]
     start=fun database ->
       inDocker dockerName "ontop/ontop-endpoint"
       |> withMount staticDir "/benchmark/static"
@@ -73,5 +73,5 @@ let ontopEndpoint =
       |> withNetwork benchmarkNetwork
       |> startContainerDetached
 
-      Threading.Thread.Sleep(15000)
+      Threading.Thread.Sleep(60000)
   }

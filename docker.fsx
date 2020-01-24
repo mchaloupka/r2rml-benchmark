@@ -5,20 +5,20 @@ open System
 open Shell
 
 type DockerArgument = { 
-    name: string; 
-    imageName: string;
-    network: string option;
-    mounts: Map<string, string>;
-    envVariables: Map<string, string>;
-    ports: Map<int, int>;
+    name: string
+    imageName: string
+    network: string option
+    mounts: Map<string, string>
+    envVariables: Map<string, string>
+    ports: Map<int, int>
 }
 
 let inDocker name imageName = { 
-    name=name; 
-    imageName=imageName; 
-    network=None;
-    mounts=Map.empty; 
-    envVariables=Map.empty; 
+    name=name
+    imageName=imageName
+    network=None
+    mounts=Map.empty
+    envVariables=Map.empty
     ports=Map.empty 
 }
 

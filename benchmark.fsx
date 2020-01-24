@@ -21,25 +21,38 @@ let generateData prodCount =
   |> withMount msSqlDatasetDir "/bsbm/dataset-1"
   |> withMount mappingDir "/benchmark/mapping"
   |> commandInNewContainer
-    (sprintf "bash -c \"./generate -pc %d -s sql -s mssql ; cp /bsbm/rdb2rdf/mapping.ttl /benchmark/mapping\"" prodCount)
+    (sprintf "bash -c \"./generate -pc %d -s sql -s mssql && cp /bsbm/rdb2rdf/mapping.ttl /benchmark/mapping\"" prodCount)
 
-let runSingleBenchmark outputSuffix clientCount endpoint = 
-  inDocker "bsbm-generate" "mchaloupka/bsbm-r2rml:latest"
-  |> withMount tdDir "/bsbm/td_data"
-  |> withMount outputDir "/benchmark"
-  |> withNetwork benchmarkNetwork
-  |> commandInNewContainer
-    (sprintf "bash -c \"./testdriver -mt %d -runs 320 -w 64 http://%s:%d%s ; mv benchmark_result.xml /benchmark/result%s.xml ; mv run.log /benchmark/run%s.log\"" clientCount endpoint.dockerName endpoint.innerPort endpoint.endpointUrl outputSuffix outputSuffix)
+let runSingleBenchmark outputSuffix clientCount endpoint includeLog =
+  let persistLogCommand = if includeLog then (sprintf " && mv run.log /benchmark/run%s.log\"" outputSuffix) else ""
 
-let runBenchmark databases endpoints clientCounts prodCount =
+  let runBenchmark () =
+    inDocker "bsbm-testdriver" "mchaloupka/bsbm-r2rml:latest"
+    |> withMount tdDir "/bsbm/td_data"
+    |> withMount outputDir "/benchmark"
+    |> withNetwork benchmarkNetwork
+    |> commandInNewContainer
+      (sprintf "bash -c \"./testdriver -mt %d -runs 320 -w 64 http://%s:%d%s && mv benchmark_result.xml /benchmark/result%s.xml %s" clientCount endpoint.dockerName endpoint.innerPort endpoint.endpointUrl outputSuffix persistLogCommand)
+
+  try
+    runBenchmark ()
+  with
+  | ex ->
+    printfn "Benchmark execution failed with: %A" ex
+    printfn "Will retry"
+    System.Threading.Thread.Sleep(30000)
+    runBenchmark ()
+
+
+let runBenchmark databases endpoints clientCounts includeLog prodCount =
   printfn " --- Running benchmark with prod count of %d ---" prodCount
 
   [
-    datasetDir;
-    mySqlDatasetDir; 
-    msSqlDatasetDir; 
-    tdDir; 
-    mappingDir;
+    datasetDir
+    mySqlDatasetDir
+    msSqlDatasetDir
+    tdDir
+    mappingDir
   ] 
   |> List.iter createAndEmptyDirectory
 
@@ -66,7 +79,7 @@ let runBenchmark databases endpoints clientCounts prodCount =
     
                 let outputSuffix = sprintf "-%s-%d-%s-%d" (database |> dbName) prodCount endpoint.name clientCount
      
-                runSingleBenchmark outputSuffix clientCount endpoint
+                runSingleBenchmark outputSuffix clientCount endpoint includeLog
 
               finally
                 stopAndRemoveContainer endpoint.dockerName

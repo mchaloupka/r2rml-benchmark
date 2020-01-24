@@ -16,7 +16,7 @@ createAndEmptyDirectory outputDir
   runBenchmark 
     // Databases to use
     [ 
-      MsSql;
+      MsSql
       MySql
     ]     
     // Endpoints to benchmark
@@ -25,7 +25,9 @@ createAndEmptyDirectory outputDir
       ontopEndpoint
     ]      
     // Client counts
-    [ 1; 2; 4; 8; 16; 32; 64 ]            
+    [ 1; 2; 4; 8; 16; 32; 64 ]  
+    // Do not include logs
+    false          
 )
 
 generateSummary ()
