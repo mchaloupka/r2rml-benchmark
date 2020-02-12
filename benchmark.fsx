@@ -43,8 +43,15 @@ let runSingleBenchmark outputSuffix clientCount endpoint includeLog =
     System.Threading.Thread.Sleep(30000)
     runBenchmark ()
 
+type BenchmarkConfiguration = {
+  productCounts: int list
+  clientCounts: int list
+  databases: Databases list
+  endpoints: Endpoint list
+  includeLogs: bool
+}
 
-let runBenchmark databases endpoints clientCounts includeLog prodCount =
+let runBenchmark configuration prodCount =
   printfn " --- Running benchmark with prod count of %d ---" prodCount
 
   [
@@ -58,9 +65,9 @@ let runBenchmark databases endpoints clientCounts includeLog prodCount =
 
   generateData prodCount
   
-  databases |> List.iter (fun database ->
+  configuration.databases |> List.iter (fun database ->
     let supportingEndpoints =
-      endpoints 
+      configuration.endpoints 
       |> List.filter (fun x -> 
         x.supportedDatabases 
         |> List.contains database)
@@ -72,14 +79,14 @@ let runBenchmark databases endpoints clientCounts includeLog prodCount =
         try
           startDatabaseContainer database
 
-          for clientCount in clientCounts do
+          for clientCount in configuration.clientCounts do
             for endpoint in supportingEndpoints do
               try
                 endpoint.start database
     
                 let outputSuffix = sprintf "-%s-%d-%s-%d" (database |> dbName) prodCount endpoint.name clientCount
      
-                runSingleBenchmark outputSuffix clientCount endpoint includeLog
+                runSingleBenchmark outputSuffix clientCount endpoint configuration.includeLogs
 
               finally
                 stopAndRemoveContainer endpoint.dockerName
@@ -178,3 +185,24 @@ let generateSummary () =
     Path.Combine(outputDir, "summary.csv"),
     (summaryHeader :: summaryRows)
   )
+
+let defaultBenchmarkConfiguration = {
+  productCounts=[ 10; 100; 1000; 10000; 100000; 200000; 500000; 1000000 ]
+  clientCounts=[ 1; 2; 4; 8; 16; 32 ]
+  databases=[ MsSql; MySql ]
+  endpoints=[ eviEndpoint; ontopEndpoint ]
+  includeLogs=false
+}
+
+let minimalBenchmarkConfiguration = {
+  defaultBenchmarkConfiguration with
+    productCounts=[10]
+    clientCounts=[1]
+    includeLogs=true
+}
+
+let performBenchmark configuration =
+  createAndEmptyDirectory outputDir
+  configuration.productCounts |> List.iter (runBenchmark configuration)
+  generateSummary ()
+
