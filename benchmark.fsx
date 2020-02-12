@@ -43,12 +43,38 @@ let runSingleBenchmark outputSuffix clientCount endpoint includeLog =
     System.Threading.Thread.Sleep(30000)
     runBenchmark ()
 
+let runDbBenchmark outputSuffix database includeLog =
+  let persistLogCommand = if includeLog then (sprintf " && mv run.log /benchmark/run%s.log\"" outputSuffix) else ""
+  let commandPart = 
+    match database with
+    | MsSql -> "-ucf usecases/explore/mssql.txt -dbdriver com.microsoft.sqlserver.jdbc.SQLServerDriver -sql \'jdbc:sqlserver://database:1433;databaseName=benchmark;user=sa;password=p@ssw0rd\'"
+    | MySql -> "-ucf usecases/explore/sql.txt -dbdriver com.mysql.jdbc.Driver -sql jdbc:mysql://root:psw@database:3306/benchmark"
+
+  let runBenchmark () =
+    inDocker "bsbm-testdriver" "mchaloupka/bsbm-r2rml:latest"
+    |> withMount tdDir "/bsbm/td_data"
+    |> withMount outputDir "/benchmark"
+    |> withMount jdbcDir "/bsbm/jdbc"
+    |> withNetwork benchmarkNetwork
+    |> commandInNewContainer
+      (sprintf "bash -c \"cp ./jdbc/* ./lib && ./testdriver -runs 192 -w 32 %s && mv benchmark_result.xml /benchmark/result%s.xml %s" commandPart outputSuffix persistLogCommand)
+
+  try
+    runBenchmark ()
+  with
+  | ex ->
+    printfn "Benchmark execution failed with: %A" ex
+    printfn "Will retry"
+    System.Threading.Thread.Sleep(30000)
+    runBenchmark ()
+
 type BenchmarkConfiguration = {
   productCounts: int list
   clientCounts: int list
   databases: Databases list
   endpoints: Endpoint list
   includeLogs: bool
+  benchmarkDatabase: bool
 }
 
 let runBenchmark configuration prodCount =
@@ -78,6 +104,10 @@ let runBenchmark configuration prodCount =
 
         try
           startDatabaseContainer database
+
+          if configuration.benchmarkDatabase then
+            let outputSuffix = sprintf "-%s-%d-db-1" (database |> dbName) prodCount
+            runDbBenchmark outputSuffix database configuration.includeLogs
 
           for clientCount in configuration.clientCounts do
             for endpoint in supportingEndpoints do
@@ -192,13 +222,20 @@ let defaultBenchmarkConfiguration = {
   databases=[ MsSql; MySql ]
   endpoints=[ eviEndpoint; ontopEndpoint ]
   includeLogs=false
+  benchmarkDatabase=true
 }
 
-let minimalBenchmarkConfiguration = {
+let quickTestBenchmarkConfiguration = {
   defaultBenchmarkConfiguration with
-    productCounts=[10]
-    clientCounts=[1]
+    productCounts=[defaultBenchmarkConfiguration.productCounts.Head]
+    clientCounts=[defaultBenchmarkConfiguration.clientCounts.Head]
     includeLogs=true
+}
+
+let upperBoundaryBenchmarkConfiguration = {
+  quickTestBenchmarkConfiguration with
+    productCounts=[(defaultBenchmarkConfiguration.productCounts |> List.last)]
+    clientCounts=[(defaultBenchmarkConfiguration.clientCounts |> List.last)]
 }
 
 let performBenchmark configuration =
