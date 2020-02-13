@@ -2,8 +2,11 @@ module Shell
 
 open System
 
+let logfn format =
+  Printf.kprintf (printfn "%A: %s" System.DateTime.Now) format
+
 let exec procName args =
-  printfn "Shell: %s %s" procName args
+  logfn "Shell: %s %s" procName args
   let proc = new Diagnostics.Process()
   proc.StartInfo <- Diagnostics.ProcessStartInfo()
   proc.StartInfo.FileName <- procName
@@ -13,10 +16,10 @@ let exec procName args =
 
   if proc.ExitCode <> 0 then 
     let error = sprintf "Error code: %d" proc.ExitCode
-    printfn "%s" error
+    logfn "%s" error
     raise (Exception(error))
   else
-    printfn "OK"
+    logfn "OK"
 
 let datasetDir = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "dataset")
 let mySqlDatasetDir = System.IO.Path.Combine(datasetDir, "mysql")

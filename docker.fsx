@@ -79,28 +79,28 @@ let private toCommand dockerArgument =
     |> String.concat " "
 
 let startContainerDetached argument =
-  printfn "Starting container %s" argument.name
+  logfn "Starting container %s" argument.name
   exec "docker" (sprintf "run -d %s" (argument |> toCommand))
 
 let execInContainer name command =
   exec "docker" (sprintf "exec %s %s" name command)
 
 let commandInNewContainer command argument =
-  printfn "Starting command '%s' in container '%s'" command argument.name
+  logfn "Starting command '%s' in container '%s'" command argument.name
   exec "docker" (sprintf "run --rm %s %s" (argument |> toCommand) command)
 
 let stopAndRemoveContainer name =
-  printfn "Stopping container %s" name
+  logfn "Stopping container %s" name
   exec "docker" (sprintf "stop %s" name)
-  printfn "Removing container %s" name
+  logfn "Removing container %s" name
   exec "docker" (sprintf "container rm %s" name)
 
 let createNetwork name =
-  printfn "Creating network %s" name
+  logfn "Creating network %s" name
   exec "docker" (sprintf "network create %s" name)
 
 let removeNetwork name =
-  printfn "Removing network %s" name
+  logfn "Removing network %s" name
   exec "docker" (sprintf "network rm %s" name)
 
 let benchmarkNetwork = "benchmark-net"

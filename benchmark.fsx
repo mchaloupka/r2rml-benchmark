@@ -38,8 +38,8 @@ let runSingleBenchmark outputSuffix clientCount endpoint includeLog =
     runBenchmark ()
   with
   | ex ->
-    printfn "Benchmark execution failed with: %A" ex
-    printfn "Will retry"
+    logfn "Benchmark execution failed with: %A" ex
+    logfn "Will retry"
     System.Threading.Thread.Sleep(30000)
     runBenchmark ()
 
@@ -63,8 +63,8 @@ let runDbBenchmark outputSuffix database includeLog =
     runBenchmark ()
   with
   | ex ->
-    printfn "Benchmark execution failed with: %A" ex
-    printfn "Will retry"
+    logfn "Benchmark execution failed with: %A" ex
+    logfn "Will retry"
     System.Threading.Thread.Sleep(30000)
     runBenchmark ()
 
@@ -78,7 +78,7 @@ type BenchmarkConfiguration = {
 }
 
 let runBenchmark configuration prodCount =
-  printfn " --- Running benchmark with prod count of %d ---" prodCount
+  logfn " --- Running benchmark with prod count of %d ---" prodCount
 
   [
     datasetDir
