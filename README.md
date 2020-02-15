@@ -34,6 +34,7 @@ Benchmark.generateData 20;;
 With the generated dataset, you can easily start the database in a docker network
 ```
 open Database
+open Docker
 createNetwork benchmarkNetwork
 startDatabaseContainer Databases.MsSql
 ;;

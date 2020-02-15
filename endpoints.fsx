@@ -43,7 +43,7 @@ let eviEndpoint =
           |> withNetwork benchmarkNetwork
           |> startContainerDetached
 
-          Threading.Thread.Sleep(60000)
+          Threading.Thread.Sleep(20000)
         | _ -> raise (new NotSupportedException())
   }
 
@@ -53,6 +53,7 @@ let ontopEndpoint =
   let outerPort = 5051
 
   let propertiesFile = function
+  | WithoutRdb -> raise (new NotSupportedException "Unsupported without DB")
   | MsSql -> "/benchmark/static/ontop.mssql.properties"
   | MySql -> "/benchmark/static/ontop.mysql.properties"
 
@@ -69,9 +70,37 @@ let ontopEndpoint =
       |> withMount jdbcDir "/opt/ontop/jdbc"
       |> withEnv "ONTOP_MAPPING_FILE" "/benchmark/static/mapping-ontop.obda"
       |> withEnv "ONTOP_PROPERTIES_FILE" (propertiesFile database)
-      |> withPort innerPort outerPort
+      |> withPort outerPort innerPort
       |> withNetwork benchmarkNetwork
       |> startContainerDetached
 
-      Threading.Thread.Sleep(60000)
+      Threading.Thread.Sleep(30000)
+  }
+
+let virtuosoEndpoint =
+  let dockerName = "virtuoso-endpoint"
+  let innerPort = 8890
+  let outerPort = 5052
+
+  {
+    name="virtuoso"
+    innerPort=innerPort
+    outerPort=outerPort
+    dockerName=dockerName
+    endpointUrl="/sparql"
+    supportedDatabases=[WithoutRdb]
+    start=fun database ->
+      inDocker dockerName "openlink/virtuoso-opensource-7:latest"
+      |> withMount ttlDatasetDir "/benchmark/ttl"
+      |> withEnv "DBA_PASSWORD" "psw"
+      |> withEnv "VIRT_Parameters_DirsAllowed" "/benchmark" 
+      |> withPort outerPort innerPort
+      |> withNetwork benchmarkNetwork
+      |> startContainerDetached
+
+      Threading.Thread.Sleep(20000)
+
+      execInContainer
+        dockerName
+        "isql 1111 dba psw \"EXEC=DB.DBA.TTLP_MT(file_to_string_output (\'/benchmark/ttl/dataset-2.ttl\'),\'\',\'http://bsbm.org\', 0);\""
   }

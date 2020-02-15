@@ -19,9 +19,10 @@ let generateData prodCount =
   |> withMount tdDir "/bsbm/td_data"
   |> withMount mySqlDatasetDir "/bsbm/dataset"
   |> withMount msSqlDatasetDir "/bsbm/dataset-1"
+  |> withMount ttlDatasetDir "/bsbm/ttl-dataset"
   |> withMount mappingDir "/benchmark/mapping"
   |> commandInNewContainer
-    (sprintf "bash -c \"./generate -pc %d -s sql -s mssql && cp /bsbm/rdb2rdf/mapping.ttl /benchmark/mapping\"" prodCount)
+    (sprintf "bash -c \"./generate -pc %d -s sql -s mssql -s ttl && cp /bsbm/rdb2rdf/mapping.ttl /benchmark/mapping && cp /bsbm/dataset-2.ttl /bsbm/ttl-dataset\"" prodCount)
 
 let runSingleBenchmark outputSuffix clientCount endpoint includeLog =
   let persistLogCommand = if includeLog then (sprintf " && mv run.log /benchmark/run%s.log\"" outputSuffix) else ""
@@ -32,7 +33,7 @@ let runSingleBenchmark outputSuffix clientCount endpoint includeLog =
     |> withMount outputDir "/benchmark"
     |> withNetwork benchmarkNetwork
     |> commandInNewContainer
-      (sprintf "bash -c \"./testdriver -mt %d -runs 192 -w 32 http://%s:%d%s && mv benchmark_result.xml /benchmark/result%s.xml %s" clientCount endpoint.dockerName endpoint.innerPort endpoint.endpointUrl outputSuffix persistLogCommand)
+      (sprintf "bash -c \"./testdriver -mt %d -runs 128 -w 32 http://%s:%d%s && mv benchmark_result.xml /benchmark/result%s.xml %s" clientCount endpoint.dockerName endpoint.innerPort endpoint.endpointUrl outputSuffix persistLogCommand)
 
   try
     runBenchmark ()
@@ -45,19 +46,23 @@ let runSingleBenchmark outputSuffix clientCount endpoint includeLog =
 
 let runDbBenchmark outputSuffix database includeLog =
   let persistLogCommand = if includeLog then (sprintf " && mv run.log /benchmark/run%s.log\"" outputSuffix) else ""
-  let commandPart = 
+  let mayBecommandPart = 
     match database with
-    | MsSql -> "-ucf usecases/explore/mssql.txt -dbdriver com.microsoft.sqlserver.jdbc.SQLServerDriver -sql \'jdbc:sqlserver://database:1433;databaseName=benchmark;user=sa;password=p@ssw0rd\'"
-    | MySql -> "-ucf usecases/explore/sql.txt -dbdriver com.mysql.jdbc.Driver -sql jdbc:mysql://root:psw@database:3306/benchmark"
+    | WithoutRdb -> None
+    | MsSql -> Some "-ucf usecases/explore/mssql.txt -dbdriver com.microsoft.sqlserver.jdbc.SQLServerDriver -sql \'jdbc:sqlserver://database:1433;databaseName=benchmark;user=sa;password=p@ssw0rd\'"
+    | MySql -> Some "-ucf usecases/explore/sql.txt -dbdriver com.mysql.jdbc.Driver -sql jdbc:mysql://root:psw@database:3306/benchmark"
 
   let runBenchmark () =
-    inDocker "bsbm-testdriver" "mchaloupka/bsbm-r2rml:latest"
-    |> withMount tdDir "/bsbm/td_data"
-    |> withMount outputDir "/benchmark"
-    |> withMount jdbcDir "/bsbm/jdbc"
-    |> withNetwork benchmarkNetwork
-    |> commandInNewContainer
-      (sprintf "bash -c \"cp ./jdbc/* ./lib && ./testdriver -runs 192 -w 32 %s && mv benchmark_result.xml /benchmark/result%s.xml %s" commandPart outputSuffix persistLogCommand)
+    match mayBecommandPart with
+    | Some commandPart ->
+      inDocker "bsbm-testdriver" "mchaloupka/bsbm-r2rml:latest"
+      |> withMount tdDir "/bsbm/td_data"
+      |> withMount outputDir "/benchmark"
+      |> withMount jdbcDir "/bsbm/jdbc"
+      |> withNetwork benchmarkNetwork
+      |> commandInNewContainer
+        (sprintf "bash -c \"cp ./jdbc/* ./lib && ./testdriver -runs 128 -w 32 %s && mv benchmark_result.xml /benchmark/result%s.xml %s" commandPart outputSuffix persistLogCommand)
+    | None -> ()
 
   try
     runBenchmark ()
@@ -84,6 +89,7 @@ let runBenchmark configuration prodCount =
     datasetDir
     mySqlDatasetDir
     msSqlDatasetDir
+    ttlDatasetDir
     tdDir
     mappingDir
   ] 
@@ -109,19 +115,20 @@ let runBenchmark configuration prodCount =
             let outputSuffix = sprintf "-%s-%d-db-1" (database |> dbName) prodCount
             runDbBenchmark outputSuffix database configuration.includeLogs
 
-          for clientCount in configuration.clientCounts do
-            for endpoint in supportingEndpoints do
-              try
-                endpoint.start database
-    
+          for endpoint in supportingEndpoints do
+            try
+              endpoint.start database
+              
+              for clientCount in configuration.clientCounts do
                 let outputSuffix = sprintf "-%s-%d-%s-%d" (database |> dbName) prodCount endpoint.name clientCount
-     
                 runSingleBenchmark outputSuffix clientCount endpoint configuration.includeLogs
 
-              finally
-                stopAndRemoveContainer endpoint.dockerName
+            finally
+              stopAndRemoveContainer endpoint.dockerName
         finally
-          stopAndRemoveContainer databaseDockerName
+          match database with
+          | WithoutRdb -> ()
+          | _ -> stopAndRemoveContainer databaseDockerName
       finally
         removeNetwork benchmarkNetwork        
   )
@@ -219,8 +226,8 @@ let generateSummary () =
 let defaultBenchmarkConfiguration = {
   productCounts=[ 10; 100; 1000; 10000; 100000; 200000; 500000; 1000000 ]
   clientCounts=[ 1; 2; 4; 8; 16; 32 ]
-  databases=[ MsSql; MySql ]
-  endpoints=[ eviEndpoint; ontopEndpoint ]
+  databases=[ WithoutRdb; MsSql; MySql ]
+  endpoints=[ eviEndpoint; ontopEndpoint; virtuosoEndpoint ]
   includeLogs=false
   benchmarkDatabase=true
 }

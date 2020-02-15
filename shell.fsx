@@ -24,6 +24,7 @@ let exec procName args =
 let datasetDir = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "dataset")
 let mySqlDatasetDir = System.IO.Path.Combine(datasetDir, "mysql")
 let msSqlDatasetDir = System.IO.Path.Combine(datasetDir, "mssql")
+let ttlDatasetDir = System.IO.Path.Combine(datasetDir, "ttl")
 let tdDir = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "td_data")
 let mappingDir = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "mapping")
 let outputDir = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "output")

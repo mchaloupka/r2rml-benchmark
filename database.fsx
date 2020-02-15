@@ -9,10 +9,12 @@ open Docker
 open Shell
 
 type Databases =
+  | WithoutRdb
   | MsSql
   | MySql
 
 let dbName = function
+  | WithoutRdb -> "none"
   | MsSql -> "mssql"
   | MySql -> "mysql"
 
@@ -55,3 +57,5 @@ let startDatabaseContainer = function
           databaseDockerName
           (sprintf "mysql -u root -ppsw -e \"source /benchmark/dataset/%s\"" x.Name)
       )
+  
+  | WithoutRdb -> ()
