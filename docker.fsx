@@ -93,7 +93,7 @@ let stopAndRemoveContainer name =
   logfn "Stopping container %s" name
   exec "docker" (sprintf "stop %s" name)
   logfn "Removing container %s" name
-  exec "docker" (sprintf "container rm %s" name)
+  exec "docker" (sprintf "container rm -vf %s" name)
 
 let createNetwork name =
   logfn "Creating network %s" name
