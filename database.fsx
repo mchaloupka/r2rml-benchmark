@@ -34,6 +34,7 @@ let startDatabaseContainer = function
 
     IO.DirectoryInfo(msSqlDatasetDir).GetFiles()
       |> Seq.filter (fun x -> x.Extension = ".sql")
+      |> Seq.sortBy (fun x -> x.Name)
       |> Seq.iter (fun x ->
         execInContainer
           databaseDockerName
@@ -52,6 +53,7 @@ let startDatabaseContainer = function
 
     IO.DirectoryInfo(mySqlDatasetDir).GetFiles()
       |> Seq.filter (fun x -> x.Extension = ".sql")
+      |> Seq.sortBy (fun x -> x.Name)
       |> Seq.iter (fun x ->
         execInContainer
           databaseDockerName
