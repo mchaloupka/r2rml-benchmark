@@ -114,18 +114,18 @@ let runBenchmark configuration prodCount =
   generateData prodCount
 
   let runCount = getRunCount prodCount
+
+  try
+    createNetwork benchmarkNetwork
   
-  configuration.databases |> List.iter (fun database ->
-    let supportingEndpoints =
-      configuration.endpoints 
-      |> List.filter (fun x -> 
-        x.supportedDatabases 
-        |> List.contains database)
+    configuration.databases |> List.iter (fun database ->
+      let supportingEndpoints =
+        configuration.endpoints 
+        |> List.filter (fun x -> 
+          x.supportedDatabases 
+          |> List.contains database)
 
-    if not supportingEndpoints.IsEmpty then
-      try
-        createNetwork benchmarkNetwork
-
+      if not supportingEndpoints.IsEmpty then
         try
           try
             startDatabaseContainer database
@@ -149,9 +149,9 @@ let runBenchmark configuration prodCount =
           match database with
           | WithoutRdb -> ()
           | _ -> stopAndRemoveContainer databaseDockerName
-      finally
-        removeNetwork benchmarkNetwork        
-  )
+    )
+  finally
+    removeNetwork benchmarkNetwork
 
 let (|Regex|_|) pattern input =
   let m = Regex.Match(input, pattern)
