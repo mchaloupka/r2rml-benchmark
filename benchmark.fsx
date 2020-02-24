@@ -42,7 +42,12 @@ let runSingleBenchmark outputSuffix clientCount endpoint includeLog =
     logfn "Benchmark execution failed with: %A" ex
     logfn "Will retry"
     System.Threading.Thread.Sleep(30000)
-    runBenchmark ()
+
+    try
+      runBenchmark ()
+    with
+    | ex ->
+      logfn "Benchmark execution failed even second time with: %A" ex
 
 let runDbBenchmark outputSuffix database includeLog =
   let persistLogCommand = if includeLog then (sprintf " && mv run.log /benchmark/run%s.log\"" outputSuffix) else ""
@@ -71,7 +76,12 @@ let runDbBenchmark outputSuffix database includeLog =
     logfn "Benchmark execution failed with: %A" ex
     logfn "Will retry"
     System.Threading.Thread.Sleep(30000)
-    runBenchmark ()
+    
+    try
+      runBenchmark ()
+    with
+    | ex ->
+      logfn "Benchmark execution failed even second time with: %A" ex
 
 type BenchmarkConfiguration = {
   productCounts: int list
@@ -109,22 +119,26 @@ let runBenchmark configuration prodCount =
         createNetwork benchmarkNetwork
 
         try
-          startDatabaseContainer database
+          try
+            startDatabaseContainer database
 
-          if configuration.benchmarkDatabase then
-            let outputSuffix = sprintf "-%s-%d-db-1" (database |> dbName) prodCount
-            runDbBenchmark outputSuffix database configuration.includeLogs
+            if configuration.benchmarkDatabase then
+              let outputSuffix = sprintf "-%s-%d-db-1" (database |> dbName) prodCount
+              runDbBenchmark outputSuffix database configuration.includeLogs
 
-          for endpoint in supportingEndpoints do
-            try
-              endpoint.start database
-              
-              for clientCount in configuration.clientCounts do
-                let outputSuffix = sprintf "-%s-%d-%s-%d" (database |> dbName) prodCount endpoint.name clientCount
-                runSingleBenchmark outputSuffix clientCount endpoint configuration.includeLogs
+            for endpoint in supportingEndpoints do
+              try
+                endpoint.start database
+                
+                for clientCount in configuration.clientCounts do
+                  let outputSuffix = sprintf "-%s-%d-%s-%d" (database |> dbName) prodCount endpoint.name clientCount
+                  runSingleBenchmark outputSuffix clientCount endpoint configuration.includeLogs
 
-            finally
-              stopAndRemoveContainer endpoint.dockerName
+              finally
+                stopAndRemoveContainer endpoint.dockerName
+          with
+          | ex ->
+            logfn "Benchmark failed with the following configuration %A, the exception was: %A" configuration ex
         finally
           match database with
           | WithoutRdb -> ()
