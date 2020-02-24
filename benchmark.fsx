@@ -135,15 +135,13 @@ let runBenchmark configuration prodCount =
               runDbBenchmark runCount outputSuffix database configuration.includeLogs
 
             for endpoint in supportingEndpoints do
-              try
-                endpoint.start database
-                
-                for clientCount in configuration.clientCounts do
+              for clientCount in configuration.clientCounts do
+                try
                   let outputSuffix = sprintf "-%s-%d-%s-%d" (database |> dbName) prodCount endpoint.name clientCount
+                  endpoint.start database
                   runSingleBenchmark runCount outputSuffix clientCount endpoint configuration.includeLogs
-
-              finally
-                stopAndRemoveContainer endpoint.dockerName
+                finally
+                  stopAndRemoveContainer endpoint.dockerName
           with
           | ex ->
             logfn "Benchmark failed with the following configuration %A, the exception was: %A" configuration ex

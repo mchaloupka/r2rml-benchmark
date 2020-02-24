@@ -87,7 +87,7 @@ let execInContainer name command =
 
 let commandInNewContainer command argument =
   logfn "Starting command '%s' in container '%s'" command argument.name
-  exec "docker" (sprintf "run --rm -v %s %s" (argument |> toCommand) command)
+  exec "docker" (sprintf "run --rm %s %s" (argument |> toCommand) command)
 
 let stopAndRemoveContainer name =
   try
