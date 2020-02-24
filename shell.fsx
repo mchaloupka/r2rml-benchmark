@@ -12,14 +12,20 @@ let exec procName args =
   proc.StartInfo.FileName <- procName
   proc.StartInfo.Arguments <- args
   proc.Start() |> ignore
-  proc.WaitForExit()
 
-  if proc.ExitCode <> 0 then 
-    let error = sprintf "Error code: %d" proc.ExitCode
-    logfn "%s" error
-    raise (Exception(error))
+  let timeout = TimeSpan.FromHours(6.0)
+  
+  if proc.WaitForExit(timeout.TotalMilliseconds |> int) then
+    if proc.ExitCode <> 0 then 
+      let error = sprintf "Error code: %d" proc.ExitCode
+      logfn "%s" error
+      raise (Exception(error))
+    else
+      logfn "OK"
   else
-    logfn "OK"
+    logfn "Timeouted"
+    proc.Kill()
+    raise (TimeoutException())
 
 let datasetDir = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "dataset")
 let mySqlDatasetDir = System.IO.Path.Combine(datasetDir, "mysql")

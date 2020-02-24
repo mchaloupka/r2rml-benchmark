@@ -87,13 +87,17 @@ let execInContainer name command =
 
 let commandInNewContainer command argument =
   logfn "Starting command '%s' in container '%s'" command argument.name
-  exec "docker" (sprintf "run --rm %s %s" (argument |> toCommand) command)
+  exec "docker" (sprintf "run --rm -v %s %s" (argument |> toCommand) command)
 
 let stopAndRemoveContainer name =
-  logfn "Stopping container %s" name
-  exec "docker" (sprintf "stop %s" name)
-  logfn "Removing container %s" name
-  exec "docker" (sprintf "container rm -vf %s" name)
+  try
+    logfn "Stopping container %s" name
+    exec "docker" (sprintf "stop %s" name)
+    logfn "Removing container %s" name
+    exec "docker" (sprintf "container rm -vf %s" name)
+  with
+  | ex ->
+    logfn "Failed to remove container %A because of %A" name ex
 
 let createNetwork name =
   logfn "Creating network %s" name

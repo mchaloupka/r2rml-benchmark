@@ -5,6 +5,7 @@ module Benchmark
 #load "database.fsx"
 #load "endpoints.fsx"
 
+open System
 open System.IO
 open System.Text.RegularExpressions
 open System.Xml
@@ -24,7 +25,12 @@ let generateData prodCount =
   |> commandInNewContainer
     (sprintf "bash -c \"./generate -pc %d -s sql -s mssql -s ttl && cp /bsbm/rdb2rdf/mapping.ttl /benchmark/mapping && cp /bsbm/dataset-2.ttl /bsbm/ttl-dataset\"" prodCount)
 
-let runSingleBenchmark outputSuffix clientCount endpoint includeLog =
+let getRunCount productCount =
+  if productCount <= 10000 then 512
+  else if productCount < 500000 then 256
+  else 128
+
+let runSingleBenchmark runCount outputSuffix clientCount endpoint includeLog =
   let persistLogCommand = if includeLog then (sprintf " && mv run.log /benchmark/run%s.log\"" outputSuffix) else ""
 
   let runBenchmark () =
@@ -33,7 +39,7 @@ let runSingleBenchmark outputSuffix clientCount endpoint includeLog =
     |> withMount outputDir "/benchmark"
     |> withNetwork benchmarkNetwork
     |> commandInNewContainer
-      (sprintf "bash -c \"./testdriver -mt %d -runs 128 -w 32 http://%s:%d%s && mv benchmark_result.xml /benchmark/result%s.xml %s" clientCount endpoint.dockerName endpoint.innerPort endpoint.endpointUrl outputSuffix persistLogCommand)
+      (sprintf "bash -c \"./testdriver -mt %d -runs %d -w 32 http://%s:%d%s && mv benchmark_result.xml /benchmark/result%s.xml %s" clientCount runCount endpoint.dockerName endpoint.innerPort endpoint.endpointUrl outputSuffix persistLogCommand)
 
   try
     runBenchmark ()
@@ -49,7 +55,7 @@ let runSingleBenchmark outputSuffix clientCount endpoint includeLog =
     | ex ->
       logfn "Benchmark execution failed even second time with: %A" ex
 
-let runDbBenchmark outputSuffix database includeLog =
+let runDbBenchmark runCount outputSuffix database includeLog =
   let persistLogCommand = if includeLog then (sprintf " && mv run.log /benchmark/run%s.log\"" outputSuffix) else ""
   let mayBecommandPart = 
     match database with
@@ -66,7 +72,7 @@ let runDbBenchmark outputSuffix database includeLog =
       |> withMount jdbcDir "/bsbm/jdbc"
       |> withNetwork benchmarkNetwork
       |> commandInNewContainer
-        (sprintf "bash -c \"cp ./jdbc/* ./lib && ./testdriver -runs 128 -w 32 %s && mv benchmark_result.xml /benchmark/result%s.xml %s" commandPart outputSuffix persistLogCommand)
+        (sprintf "bash -c \"cp ./jdbc/* ./lib && ./testdriver -runs %d -w 32 %s && mv benchmark_result.xml /benchmark/result%s.xml %s" runCount commandPart outputSuffix persistLogCommand)
     | None -> ()
 
   try
@@ -106,6 +112,8 @@ let runBenchmark configuration prodCount =
   |> List.iter createAndEmptyDirectory
 
   generateData prodCount
+
+  let runCount = getRunCount prodCount
   
   configuration.databases |> List.iter (fun database ->
     let supportingEndpoints =
@@ -124,7 +132,7 @@ let runBenchmark configuration prodCount =
 
             if configuration.benchmarkDatabase then
               let outputSuffix = sprintf "-%s-%d-db-1" (database |> dbName) prodCount
-              runDbBenchmark outputSuffix database configuration.includeLogs
+              runDbBenchmark runCount outputSuffix database configuration.includeLogs
 
             for endpoint in supportingEndpoints do
               try
@@ -132,7 +140,7 @@ let runBenchmark configuration prodCount =
                 
                 for clientCount in configuration.clientCounts do
                   let outputSuffix = sprintf "-%s-%d-%s-%d" (database |> dbName) prodCount endpoint.name clientCount
-                  runSingleBenchmark outputSuffix clientCount endpoint configuration.includeLogs
+                  runSingleBenchmark runCount outputSuffix clientCount endpoint configuration.includeLogs
 
               finally
                 stopAndRemoveContainer endpoint.dockerName
