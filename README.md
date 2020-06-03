@@ -26,6 +26,11 @@ To start using the commands, you need to load the scripts
 #load "benchmark.fsx";;
 ```
 
+The next commands depends on an available folder structure, the following command creates or empties needed folders.
+```
+Benchmark.createAndClearWorkingDirectories ();;
+```
+
 After that, generate the dataset (replace the number with desired prod count)
 ```
 Benchmark.generateData 20;;
@@ -47,9 +52,14 @@ eviEndpoint.start Databases.MsSql
 ;;
 ```
 
-And to run a benchmark on it (replace the number with desired client count)
+And to run a benchmark on it, the arguments are:
+* How many runs will be executed
+* Suffix for the log and output files
+* How many parallel clients will be used
+* Which endpoint will be benchmarked
+* A flag whether the full log should be stored
 ```
-Benchmark.runSingleBenchmark "log-file-suffix" 1 eviEndpoint;;
+Benchmark.runSingleBenchmark 128 "log-file-suffix" 1 eviEndpoint false;;
 ```
 
 In the end, you have to also stop the docker containers and remove network:

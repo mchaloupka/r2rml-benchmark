@@ -98,9 +98,7 @@ type BenchmarkConfiguration = {
   benchmarkDatabase: bool
 }
 
-let runBenchmark configuration prodCount =
-  logfn " --- Running benchmark with prod count of %d ---" prodCount
-
+let createAndClearWorkingDirectories () =
   [
     datasetDir
     mySqlDatasetDir
@@ -110,6 +108,11 @@ let runBenchmark configuration prodCount =
     mappingDir
   ] 
   |> List.iter createAndEmptyDirectory
+
+let runBenchmark configuration prodCount =
+  logfn " --- Running benchmark with prod count of %d ---" prodCount
+
+  createAndClearWorkingDirectories ()
 
   generateData prodCount
 
