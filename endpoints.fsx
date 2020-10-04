@@ -53,7 +53,7 @@ let ontopEndpoint =
   let outerPort = 5051
 
   let propertiesFile = function
-  | WithoutRdb -> raise (new NotSupportedException "Unsupported without DB")
+  | WithoutRdb -> NotSupportedException "Unsupported without DB" |> raise
   | MsSql -> "/benchmark/static/ontop.mssql.properties"
   | MySql -> "/benchmark/static/ontop.mysql.properties"
 
@@ -68,7 +68,8 @@ let ontopEndpoint =
       inDocker dockerName "ontop/ontop-endpoint"
       |> withMount staticDir "/benchmark/static"
       |> withMount jdbcDir "/opt/ontop/jdbc"
-      |> withEnv "ONTOP_MAPPING_FILE" "/benchmark/static/mapping-ontop.obda"
+      |> withMount mappingDir "/benchmark/mapping"
+      |> withEnv "ONTOP_MAPPING_FILE" "/benchmark/mapping/mapping.ttl"
       |> withEnv "ONTOP_PROPERTIES_FILE" (propertiesFile database)
       |> withPort outerPort innerPort
       |> withNetwork benchmarkNetwork
@@ -89,7 +90,7 @@ let virtuosoEndpoint =
     dockerName=dockerName
     endpointUrl="/sparql"
     supportedDatabases=[WithoutRdb]
-    start=fun database ->
+    start=fun _ ->
       inDocker dockerName "openlink/virtuoso-opensource-7:latest"
       |> withMount ttlDatasetDir "/benchmark/ttl"
       |> withEnv "DBA_PASSWORD" "psw"
