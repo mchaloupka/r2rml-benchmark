@@ -43,7 +43,7 @@ let execToGetOutput procName args =
     if proc.ExitCode <> 0 then 
       let error = sprintf "Error code: %d" proc.ExitCode
       logfn "%s" error
-      raise (Exception(error))
+      proc.StandardOutput.ReadToEnd ()
     else
       logfn "OK"
       proc.StandardOutput.ReadToEnd ()

@@ -94,6 +94,7 @@ let virtuosoEndpoint =
   let dockerName = "virtuoso-endpoint"
   let innerPort = 8890
   let outerPort = 5052
+  let imageName = "openlink/virtuoso-opensource-7:latest"
 
   {
     Name = "virtuoso"
@@ -116,5 +117,11 @@ let virtuosoEndpoint =
       execInContainer
         dockerName
         "isql 1111 dba psw \"EXEC=DB.DBA.TTLP_MT(file_to_string_output (\'/benchmark/ttl/dataset-2.ttl\'),\'\',\'http://bsbm.org\', 0);\""
-    GetVersion = fun _ -> ""
+    GetVersion = fun () ->
+      inDocker dockerName imageName
+      |> outputOfCommandInNewContainer "version"
+      |> fun x -> x.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
+      |> Array.skip 1
+      |> Array.map (fun x -> x.Trim ())
+      |> fun x -> String.Join(" :: ", x)
   }
