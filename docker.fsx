@@ -5,88 +5,88 @@ open System
 open Shell
 
 type DockerArgument = { 
-    name: string
-    imageName: string
-    network: string option
-    mounts: Map<string, string>
-    envVariables: Map<string, string>
-    ports: Map<int, int>
+    Name: string
+    ImageName: string
+    Network: string option
+    Mounts: Map<string, string>
+    EnvVariables: Map<string, string>
+    Ports: Map<int, int>
 }
 
 let inDocker name imageName = { 
-    name=name
-    imageName=imageName
-    network=None
-    mounts=Map.empty
-    envVariables=Map.empty
-    ports=Map.empty 
+    Name = name
+    ImageName = imageName
+    Network = None
+    Mounts = Map.empty
+    EnvVariables = Map.empty
+    Ports = Map.empty 
 }
 
 let withMount source destination dockerArgument = {
     dockerArgument 
-    with mounts=dockerArgument.mounts.Add(source, destination)
+    with Mounts = dockerArgument.Mounts.Add(source, destination)
 }
 
 let withEnv name value dockerArgument = {
     dockerArgument
-    with envVariables=dockerArgument.envVariables.Add(name, value)
+    with EnvVariables = dockerArgument.EnvVariables.Add(name, value)
 }
 
 let withPort source destination dockerArgument = {
     dockerArgument 
-    with ports=dockerArgument.ports.Add(source, destination)
+    with Ports = dockerArgument.Ports.Add(source, destination)
 }
 
 let withNetwork networkName dockerArgument = {
   dockerArgument
-  with network=Some(networkName)
+  with Network = Some(networkName)
 }
 
 let private toCommand dockerArgument =
     let mountCommand =
-      dockerArgument.mounts 
+      dockerArgument.Mounts 
       |> Map.toList
       |> List.map (fun (k, v) -> sprintf "-v \"%s:%s\"" k v) 
       |> String.concat " "
 
     let envCommand =
-      dockerArgument.envVariables
+      dockerArgument.EnvVariables
       |> Map.toList
       |> List.map (fun (k, v) -> sprintf "-e \"%s=%s\"" k v)
       |> String.concat " "
 
     let portsCommand =
-      dockerArgument.ports
+      dockerArgument.Ports
       |> Map.toList
       |> List.map (fun (k, v) -> sprintf "-p %d:%d" k v)
       |> String.concat " "
 
     let networkCommand =
-      match dockerArgument.network with
+      match dockerArgument.Network with
       | Some x -> sprintf "--net=%s" x
       | _ -> ""
 
     [
       "--name"
-      dockerArgument.name
+      dockerArgument.Name
       mountCommand
       envCommand
       portsCommand
       networkCommand
-      dockerArgument.imageName
+      dockerArgument.ImageName
     ] 
     |> List.filter (String.IsNullOrEmpty >> not) 
     |> String.concat " "
 
 let startContainerDetached argument =
-  logfn "Starting container %s" argument.name
+  logfn "Starting container %s" argument.Name
   exec "docker" (sprintf "run -d %s" (argument |> toCommand))
 
 let execInContainer name command =
   exec "docker" (sprintf "exec %s %s" name command)
 
 let commandInNewContainer command argument =
-  logfn "Starting command '%s' in container '%s'" command argument.name
+  logfn "Starting command '%s' in container '%s'" command argument.Name
   exec "docker" (sprintf "run --rm %s %s" (argument |> toCommand) command)
 
 let stopAndRemoveContainer name =

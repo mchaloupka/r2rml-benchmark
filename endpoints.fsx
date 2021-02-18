@@ -11,13 +11,13 @@ open Docker
 open Database
 
 type Endpoint = {
-  name: string
-  outerPort: int
-  innerPort: int
-  dockerName: string
-  endpointUrl: string
-  supportedDatabases: Databases list
-  start: Databases -> unit
+  Name: string
+  OuterPort: int
+  InnerPort: int
+  DockerName: string
+  EndpointUrl: string
+  SupportedDatabases: Databases list
+  Start: Databases -> unit
 }
 
 let eviEndpoint = 
@@ -26,13 +26,13 @@ let eviEndpoint =
   let outerPort = 5000
   
   {
-    name="evi"
-    innerPort=innerPort
-    outerPort=outerPort
-    dockerName=dockerName
-    endpointUrl="/api/sparql"
-    supportedDatabases=[MsSql]
-    start=
+    Name="evi"
+    InnerPort=innerPort
+    OuterPort=outerPort
+    DockerName=dockerName
+    EndpointUrl="/api/sparql"
+    SupportedDatabases=[MsSql]
+    Start=
       function
         | MsSql ->
           inDocker dockerName "mchaloupka/slp.evi:latest"
@@ -58,13 +58,13 @@ let ontopEndpoint =
   | MySql -> "/benchmark/static/ontop.mysql.properties"
 
   {
-    name="ontop"
-    innerPort=innerPort
-    outerPort=outerPort
-    dockerName=dockerName
-    endpointUrl="/sparql"
-    supportedDatabases=[MsSql; MySql]
-    start=fun database ->
+    Name="ontop"
+    InnerPort=innerPort
+    OuterPort=outerPort
+    DockerName=dockerName
+    EndpointUrl="/sparql"
+    SupportedDatabases=[MsSql; MySql]
+    Start=fun database ->
       inDocker dockerName "ontop/ontop-endpoint"
       |> withMount staticDir "/benchmark/static"
       |> withMount jdbcDir "/opt/ontop/jdbc"
@@ -84,13 +84,13 @@ let virtuosoEndpoint =
   let outerPort = 5052
 
   {
-    name="virtuoso"
-    innerPort=innerPort
-    outerPort=outerPort
-    dockerName=dockerName
-    endpointUrl="/sparql"
-    supportedDatabases=[WithoutRdb]
-    start=fun _ ->
+    Name="virtuoso"
+    InnerPort=innerPort
+    OuterPort=outerPort
+    DockerName=dockerName
+    EndpointUrl="/sparql"
+    SupportedDatabases=[WithoutRdb]
+    Start=fun _ ->
       inDocker dockerName "openlink/virtuoso-opensource-7:latest"
       |> withMount ttlDatasetDir "/benchmark/ttl"
       |> withEnv "DBA_PASSWORD" "psw"

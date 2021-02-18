@@ -39,7 +39,7 @@ let runSingleBenchmark runCount outputSuffix clientCount endpoint includeLog =
     |> withMount outputDir "/benchmark"
     |> withNetwork benchmarkNetwork
     |> commandInNewContainer
-      (sprintf "bash -c \"./testdriver -mt %d -runs %d -w 32 http://%s:%d%s && mv benchmark_result.xml /benchmark/result%s.xml %s" clientCount runCount endpoint.dockerName endpoint.innerPort endpoint.endpointUrl outputSuffix persistLogCommand)
+      (sprintf "bash -c \"./testdriver -mt %d -runs %d -w 32 http://%s:%d%s && mv benchmark_result.xml /benchmark/result%s.xml %s" clientCount runCount endpoint.DockerName endpoint.InnerPort endpoint.EndpointUrl outputSuffix persistLogCommand)
 
   try
     runBenchmark ()
@@ -90,12 +90,12 @@ let runDbBenchmark runCount outputSuffix database includeLog =
       logfn "Benchmark execution failed even second time with: %A" ex
 
 type BenchmarkConfiguration = {
-  productCounts: int list
-  clientCounts: int list
-  databases: Databases list
-  endpoints: Endpoint list
-  includeLogs: bool
-  benchmarkDatabase: bool
+  ProductCounts: int list
+  ClientCounts: int list
+  Databases: Databases list
+  Endpoints: Endpoint list
+  IncludeLogs: bool
+  BenchmarkDatabase: bool
 }
 
 let createAndClearWorkingDirectories () =
@@ -121,11 +121,11 @@ let runBenchmark configuration prodCount =
   try
     createNetwork benchmarkNetwork
   
-    configuration.databases |> List.iter (fun database ->
+    configuration.Databases |> List.iter (fun database ->
       let supportingEndpoints =
-        configuration.endpoints 
+        configuration.Endpoints 
         |> List.filter (fun x -> 
-          x.supportedDatabases 
+          x.SupportedDatabases 
           |> List.contains database)
 
       if not supportingEndpoints.IsEmpty then
@@ -133,18 +133,18 @@ let runBenchmark configuration prodCount =
           try
             startDatabaseContainer database
 
-            if configuration.benchmarkDatabase then
+            if configuration.BenchmarkDatabase then
               let outputSuffix = sprintf "-%s-%d-db-1" (database |> dbName) prodCount
-              runDbBenchmark runCount outputSuffix database configuration.includeLogs
+              runDbBenchmark runCount outputSuffix database configuration.IncludeLogs
 
             for endpoint in supportingEndpoints do
               try
-                endpoint.start database
-                for clientCount in configuration.clientCounts do
-                  let outputSuffix = sprintf "-%s-%d-%s-%d" (database |> dbName) prodCount endpoint.name clientCount
-                  runSingleBenchmark runCount outputSuffix clientCount endpoint configuration.includeLogs
+                endpoint.Start database
+                for clientCount in configuration.ClientCounts do
+                  let outputSuffix = sprintf "-%s-%d-%s-%d" (database |> dbName) prodCount endpoint.Name clientCount
+                  runSingleBenchmark runCount outputSuffix clientCount endpoint configuration.IncludeLogs
               finally
-                stopAndRemoveContainer endpoint.dockerName
+                stopAndRemoveContainer endpoint.DockerName
           with
           | ex ->
             logfn "Benchmark failed with the following configuration %A, the exception was: %A" configuration ex
@@ -247,29 +247,29 @@ let generateSummary () =
   )
 
 let defaultBenchmarkConfiguration = {
-  productCounts=[ 10; 100; 1000; 10000; 100000; 200000; 500000; 1000000 ]
-  clientCounts=[ 1; 2; 4; 8; 16; 32 ]
-  databases=[ WithoutRdb; MsSql; MySql ]
-  endpoints=[ eviEndpoint; ontopEndpoint; virtuosoEndpoint ]
-  includeLogs=false
-  benchmarkDatabase=true
+  ProductCounts = [ 10; 100; 1000; 10000; 100000; 200000; 500000 ]
+  ClientCounts = [ 1; 2; 4; 8; 16; 32 ]
+  Databases = [ WithoutRdb; MsSql; MySql ]
+  Endpoints = [ eviEndpoint; ontopEndpoint; virtuosoEndpoint ]
+  IncludeLogs = false
+  BenchmarkDatabase = true
 }
 
 let quickTestBenchmarkConfiguration = {
   defaultBenchmarkConfiguration with
-    productCounts=[defaultBenchmarkConfiguration.productCounts.Head]
-    clientCounts=[defaultBenchmarkConfiguration.clientCounts.Head]
-    includeLogs=true
+    ProductCounts = defaultBenchmarkConfiguration.ProductCounts |> List.head |> List.singleton
+    ClientCounts = defaultBenchmarkConfiguration.ClientCounts |> List.head |> List.singleton
+    IncludeLogs = true
 }
 
 let upperBoundaryBenchmarkConfiguration = {
   quickTestBenchmarkConfiguration with
-    productCounts=[(defaultBenchmarkConfiguration.productCounts |> List.last)]
-    clientCounts=[(defaultBenchmarkConfiguration.clientCounts |> List.last)]
+    ProductCounts = defaultBenchmarkConfiguration.ProductCounts |> List.last |> List.singleton
+    ClientCounts = defaultBenchmarkConfiguration.ClientCounts |> List.last |> List.singleton
 }
 
 let performBenchmark configuration =
   createAndEmptyDirectory outputDir
-  configuration.productCounts |> List.iter (runBenchmark configuration)
+  configuration.ProductCounts |> List.iter (runBenchmark configuration)
   generateSummary ()
 
