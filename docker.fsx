@@ -11,6 +11,7 @@ type DockerArgument = {
     Mounts: Map<string, string>
     EnvVariables: Map<string, string>
     Ports: Map<int, int>
+    EntryPoint: string option
 }
 
 let inDocker name imageName = { 
@@ -19,7 +20,8 @@ let inDocker name imageName = {
     Network = None
     Mounts = Map.empty
     EnvVariables = Map.empty
-    Ports = Map.empty 
+    Ports = Map.empty
+    EntryPoint = None
 }
 
 let withMount source destination dockerArgument = {
@@ -40,6 +42,11 @@ let withPort source destination dockerArgument = {
 let withNetwork networkName dockerArgument = {
   dockerArgument
   with Network = Some(networkName)
+}
+
+let withEntryPoint entryPoint dockerArgument = {
+  dockerArgument
+  with EntryPoint = entryPoint |> Some
 }
 
 let private toCommand dockerArgument =
@@ -66,6 +73,11 @@ let private toCommand dockerArgument =
       | Some x -> sprintf "--net=%s" x
       | _ -> ""
 
+    let entrypointCommand =
+      match dockerArgument.EntryPoint with
+      | Some x -> sprintf "--entrypoint %s" x
+      | _ -> ""
+
     [
       "--name"
       dockerArgument.Name
@@ -73,6 +85,7 @@ let private toCommand dockerArgument =
       envCommand
       portsCommand
       networkCommand
+      entrypointCommand
       dockerArgument.ImageName
     ] 
     |> List.filter (String.IsNullOrEmpty >> not) 

@@ -50,12 +50,14 @@ let eviEndpoint =
     GetVersion = fun () ->
       inDocker dockerName imageName
       |> outputOfCommandInNewContainer "--version"
+      |> fun x -> x.Trim()
   }
 
 let ontopEndpoint =
   let dockerName = "ontop-endpoint"
   let innerPort = 8080
   let outerPort = 5051
+  let imageName = "ontop/ontop-endpoint"
 
   let propertiesFile = function
   | WithoutRdb -> NotSupportedException "Unsupported without DB" |> raise
@@ -70,7 +72,7 @@ let ontopEndpoint =
     EndpointUrl = "/sparql"
     SupportedDatabases = [ MsSql; MySql ]
     Start = fun database ->
-      inDocker dockerName "ontop/ontop-endpoint"
+      inDocker dockerName imageName
       |> withMount staticDir "/benchmark/static"
       |> withMount jdbcDir "/opt/ontop/jdbc"
       |> withMount mappingDir "/benchmark/mapping"
@@ -81,7 +83,11 @@ let ontopEndpoint =
       |> startContainerDetached
 
       Threading.Thread.Sleep(30000)
-    GetVersion = fun () -> ""
+    GetVersion = fun () ->
+      inDocker dockerName imageName
+      |> withEntryPoint "java"
+      |> outputOfCommandInNewContainer "-cp ./lib/* it.unibz.inf.ontop.cli.Ontop --version"
+      |> fun x -> x.Trim()
   }
 
 let virtuosoEndpoint =

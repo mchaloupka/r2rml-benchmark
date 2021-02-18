@@ -39,8 +39,6 @@ let execToGetOutput procName args =
 
   let timeout = TimeSpan.FromHours(6.0)
 
-  let output = proc.StandardOutput.ReadToEnd ()
-
   if proc.WaitForExit(timeout.TotalMilliseconds |> int) then
     if proc.ExitCode <> 0 then 
       let error = sprintf "Error code: %d" proc.ExitCode
@@ -48,7 +46,7 @@ let execToGetOutput procName args =
       raise (Exception(error))
     else
       logfn "OK"
-      output
+      proc.StandardOutput.ReadToEnd ()
   else
     logfn "Timeouted"
     proc.Kill()
