@@ -61,3 +61,6 @@ let startDatabaseContainer = function
       )
   
   | WithoutRdb -> ()
+
+let tryGetVersion = function
+  | _ -> None

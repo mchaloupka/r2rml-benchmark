@@ -18,6 +18,7 @@ type Endpoint = {
   EndpointUrl: string
   SupportedDatabases: Databases list
   Start: Databases -> unit
+  GetVersion: unit -> string
 }
 
 let eviEndpoint = 
@@ -26,13 +27,13 @@ let eviEndpoint =
   let outerPort = 5000
   
   {
-    Name="evi"
-    InnerPort=innerPort
-    OuterPort=outerPort
-    DockerName=dockerName
-    EndpointUrl="/api/sparql"
-    SupportedDatabases=[MsSql]
-    Start=
+    Name = "evi"
+    InnerPort = innerPort
+    OuterPort = outerPort
+    DockerName = dockerName
+    EndpointUrl = "/api/sparql"
+    SupportedDatabases = MsSql |> List.singleton
+    Start = 
       function
         | MsSql ->
           inDocker dockerName "mchaloupka/slp.evi:latest"
@@ -45,6 +46,7 @@ let eviEndpoint =
 
           Threading.Thread.Sleep(20000)
         | _ -> raise (new NotSupportedException())
+    GetVersion = fun () -> ""
   }
 
 let ontopEndpoint =
@@ -58,13 +60,13 @@ let ontopEndpoint =
   | MySql -> "/benchmark/static/ontop.mysql.properties"
 
   {
-    Name="ontop"
-    InnerPort=innerPort
-    OuterPort=outerPort
-    DockerName=dockerName
-    EndpointUrl="/sparql"
-    SupportedDatabases=[MsSql; MySql]
-    Start=fun database ->
+    Name = "ontop"
+    InnerPort = innerPort
+    OuterPort = outerPort
+    DockerName = dockerName
+    EndpointUrl = "/sparql"
+    SupportedDatabases = [ MsSql; MySql ]
+    Start = fun database ->
       inDocker dockerName "ontop/ontop-endpoint"
       |> withMount staticDir "/benchmark/static"
       |> withMount jdbcDir "/opt/ontop/jdbc"
@@ -76,6 +78,7 @@ let ontopEndpoint =
       |> startContainerDetached
 
       Threading.Thread.Sleep(30000)
+    GetVersion = fun () -> ""
   }
 
 let virtuosoEndpoint =
@@ -84,13 +87,13 @@ let virtuosoEndpoint =
   let outerPort = 5052
 
   {
-    Name="virtuoso"
-    InnerPort=innerPort
-    OuterPort=outerPort
-    DockerName=dockerName
-    EndpointUrl="/sparql"
-    SupportedDatabases=[WithoutRdb]
-    Start=fun _ ->
+    Name = "virtuoso"
+    InnerPort = innerPort
+    OuterPort = outerPort
+    DockerName = dockerName
+    EndpointUrl = "/sparql"
+    SupportedDatabases = WithoutRdb |> List.singleton
+    Start = fun _ ->
       inDocker dockerName "openlink/virtuoso-opensource-7:latest"
       |> withMount ttlDatasetDir "/benchmark/ttl"
       |> withEnv "DBA_PASSWORD" "psw"
@@ -104,4 +107,5 @@ let virtuosoEndpoint =
       execInContainer
         dockerName
         "isql 1111 dba psw \"EXEC=DB.DBA.TTLP_MT(file_to_string_output (\'/benchmark/ttl/dataset-2.ttl\'),\'\',\'http://bsbm.org\', 0);\""
+    GetVersion = fun () -> ""
   }

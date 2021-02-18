@@ -268,8 +268,30 @@ let upperBoundaryBenchmarkConfiguration = {
     ClientCounts = defaultBenchmarkConfiguration.ClientCounts |> List.last |> List.singleton
 }
 
+let writeVersions configuration =
+  let endpointVersions =
+    configuration.Endpoints
+    |> List.map (fun endpoint -> endpoint.Name, endpoint.GetVersion ())
+  
+  let databaseVersions =
+    if configuration.BenchmarkDatabase then
+      configuration.Databases
+      |> List.choose (fun database ->
+        database
+        |> Database.tryGetVersion
+        |> Option.map (fun version -> database |> Database.dbName, version)
+      )
+    else
+      List.empty
+
+  File.WriteAllLines(
+    Path.Combine(outputDir, "version.csv"),
+    ((endpointVersions @ databaseVersions) |> List.map (fun (x, y) -> sprintf "%s,%s" x y))
+  )
+
 let performBenchmark configuration =
   createAndEmptyDirectory outputDir
   configuration.ProductCounts |> List.iter (runBenchmark configuration)
   generateSummary ()
+  configuration |> writeVersions
 
