@@ -25,6 +25,7 @@ let eviEndpoint =
   let dockerName = "evi-endpoint"
   let innerPort = 80
   let outerPort = 5000
+  let imageName = "mchaloupka/slp.evi:latest"
   
   {
     Name = "evi"
@@ -36,7 +37,7 @@ let eviEndpoint =
     Start = 
       function
         | MsSql ->
-          inDocker dockerName "mchaloupka/slp.evi:latest"
+          inDocker dockerName imageName
           |> withMount mappingDir "/benchmark/mapping"
           |> withEnv "EVI_STORAGE__MAPPINGFILEPATH" "/benchmark/mapping/mapping.ttl"
           |> withEnv "EVI_STORAGE__CONNECTIONSTRING" "Server=database,1433;Database=benchmark;User Id=sa;Password=p@ssw0rd"
@@ -46,7 +47,9 @@ let eviEndpoint =
 
           Threading.Thread.Sleep(20000)
         | _ -> raise (new NotSupportedException())
-    GetVersion = fun () -> ""
+    GetVersion = fun () ->
+      inDocker dockerName imageName
+      |> outputOfCommandInNewContainer "--version"
   }
 
 let ontopEndpoint =
@@ -107,5 +110,5 @@ let virtuosoEndpoint =
       execInContainer
         dockerName
         "isql 1111 dba psw \"EXEC=DB.DBA.TTLP_MT(file_to_string_output (\'/benchmark/ttl/dataset-2.ttl\'),\'\',\'http://bsbm.org\', 0);\""
-    GetVersion = fun () -> ""
+    GetVersion = fun _ -> ""
   }

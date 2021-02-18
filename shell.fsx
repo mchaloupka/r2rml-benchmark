@@ -27,6 +27,33 @@ let exec procName args =
     proc.Kill()
     raise (TimeoutException())
 
+let execToGetOutput procName args =
+  logfn "Shell: %s %s" procName args
+  let proc = new Diagnostics.Process()
+  proc.StartInfo <- Diagnostics.ProcessStartInfo()
+  proc.StartInfo.FileName <- procName
+  proc.StartInfo.Arguments <- args
+  proc.StartInfo.RedirectStandardOutput <- true
+
+  proc.Start() |> ignore
+
+  let timeout = TimeSpan.FromHours(6.0)
+
+  let output = proc.StandardOutput.ReadToEnd ()
+
+  if proc.WaitForExit(timeout.TotalMilliseconds |> int) then
+    if proc.ExitCode <> 0 then 
+      let error = sprintf "Error code: %d" proc.ExitCode
+      logfn "%s" error
+      raise (Exception(error))
+    else
+      logfn "OK"
+      output
+  else
+    logfn "Timeouted"
+    proc.Kill()
+    raise (TimeoutException())
+
 let datasetDir = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "dataset")
 let mySqlDatasetDir = System.IO.Path.Combine(datasetDir, "mysql")
 let msSqlDatasetDir = System.IO.Path.Combine(datasetDir, "mssql")
