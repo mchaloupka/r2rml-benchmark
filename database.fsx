@@ -20,9 +20,12 @@ let dbName = function
 
 let databaseDockerName = "database"
 
+let msSqlImageName = "mcr.microsoft.com/mssql/server:2017-latest"
+let mySqlImageName = "mysql:latest"
+
 let startDatabaseContainer = function
   | MsSql ->
-    inDocker databaseDockerName "mcr.microsoft.com/mssql/server:2017-latest"
+    inDocker databaseDockerName msSqlImageName
     |> withMount msSqlDatasetDir "/benchmark/dataset"
     |> withEnv "ACCEPT_EULA" "Y"
     |> withEnv "SA_PASSWORD" "p@ssw0rd"
@@ -42,7 +45,7 @@ let startDatabaseContainer = function
       )
       
   | MySql ->
-    inDocker databaseDockerName "mysql:latest"
+    inDocker databaseDockerName mySqlImageName
     |> withMount mySqlDatasetDir "/benchmark/dataset"
     |> withEnv "MYSQL_ROOT_PASSWORD" "psw"
     |> withPort 3306 3306
@@ -63,4 +66,22 @@ let startDatabaseContainer = function
   | WithoutRdb -> ()
 
 let tryGetVersion = function
+  | MsSql ->
+    inDocker databaseDockerName msSqlImageName
+    |> withEnv "PAL_PROGRAM_INFO" "1"
+    |> outputOfCommandInNewContainer ""
+    |> fun x -> x.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
+    |> Array.map (fun x -> x.Trim())
+    |> Array.skipWhile (fun x -> x <> "sqlservr")
+    |> Array.skip 1
+    |> Array.take 1
+    |> Array.head
+    |> Some
+  | MySql ->
+    inDocker databaseDockerName mySqlImageName
+    |> outputOfCommandInNewContainer "--version"
+    |> fun x ->
+      let indexOfVer = x.IndexOf("Ver")
+      x.Substring(indexOfVer)
+    |> Some
   | _ -> None
