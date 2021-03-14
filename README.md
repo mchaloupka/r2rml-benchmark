@@ -3,7 +3,7 @@ Scripting to perform a benchmark of virtual SPARQL endpoints based on R2RML mapp
 
 ## Prerequisities
 * Docker
-* .NET Core SDK 3.1 or newer
+* .NET Core SDK 5 or newer
 
 Has been currently tested only on Windows. Should be easy to add support for other platforms, please create a pull request if you want to add support.
 
@@ -48,7 +48,7 @@ startDatabaseContainer Databases.MsSql
 Now, with everything available, it is possible to start the endpoint
 ```
 open Endpoints
-eviEndpoint.start Databases.MsSql
+eviEndpoint.Start Databases.MsSql
 ;;
 ```
 
