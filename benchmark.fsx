@@ -55,7 +55,7 @@ let runSingleBenchmark runCount outputSuffix clientCount endpoint includeLog =
     | ex ->
       logfn "Benchmark execution failed even second time with: %A" ex
 
-let runDbBenchmark runCount outputSuffix database includeLog =
+let runDbBenchmark runCount outputSuffix clientCount database includeLog =
   let persistLogCommand = if includeLog then (sprintf " && mv run.log /benchmark/run%s.log\"" outputSuffix) else ""
   let mayBecommandPart = 
     match database with
@@ -72,7 +72,7 @@ let runDbBenchmark runCount outputSuffix database includeLog =
       |> withMount jdbcDir "/bsbm/jdbc"
       |> withNetwork benchmarkNetwork
       |> commandInNewContainer
-        (sprintf "bash -c \"cp ./jdbc/* ./lib && ./testdriver -runs %d -w 32 %s && mv benchmark_result.xml /benchmark/result%s.xml %s" runCount commandPart outputSuffix persistLogCommand)
+        (sprintf "bash -c \"cp ./jdbc/* ./lib && ./testdriver -mt %d -runs %d -w 32 %s && mv benchmark_result.xml /benchmark/result%s.xml %s" clientCount runCount commandPart outputSuffix persistLogCommand)
     | None -> ()
 
   try
@@ -128,14 +128,15 @@ let runBenchmark configuration prodCount =
           x.SupportedDatabases 
           |> List.contains database)
 
-      if not supportingEndpoints.IsEmpty then
+      if (not supportingEndpoints.IsEmpty) || (configuration.BenchmarkDatabase) then
         try
           try
             startDatabaseContainer database
 
             if configuration.BenchmarkDatabase then
-              let outputSuffix = sprintf "-%s-%d-db-1" (database |> dbName) prodCount
-              runDbBenchmark runCount outputSuffix database configuration.IncludeLogs
+              for clientCount in configuration.ClientCounts do
+                let outputSuffix = sprintf "-%s-%d-db-%d" (database |> dbName) prodCount clientCount
+                runDbBenchmark runCount outputSuffix clientCount database configuration.IncludeLogs
 
             for endpoint in supportingEndpoints do
               try
