@@ -64,8 +64,8 @@ Benchmark.runSingleBenchmark 128 "log-file-suffix" 1 eviEndpoint false;;
 
 In the end, you have to also stop the docker containers and remove network:
 ```
-Docker.stopAndRemoveContainer eviEndpoint.dockerName
-Docker.stopAndRemoveContainer databaseDockerName
+stopAndRemoveContainer eviEndpoint.dockerName
+stopAndRemoveContainer databaseDockerName
 removeNetwork benchmarkNetwork
 ;;
 ```
