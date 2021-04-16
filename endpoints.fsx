@@ -57,7 +57,7 @@ let ontopEndpoint =
   let dockerName = "ontop-endpoint"
   let innerPort = 8080
   let outerPort = 5051
-  let imageName = "ontop/ontop-endpoint"
+  let imageName = "ontop/ontop-endpoint:4.1"
 
   let propertiesFile = function
   | WithoutRdb -> NotSupportedException "Unsupported without DB" |> raise
