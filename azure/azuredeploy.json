@@ -236,7 +236,7 @@
             "settings": {
             },
             "protectedSettings": {
-                "commandToExecute": "sh install.sh",
+                "commandToExecute": "[concat('sh install.sh ', parameters('adminUsername'))]",
                 "fileUris": ["https://raw.githubusercontent.com/mchaloupka/r2rml-benchmark/master/azure/install.sh"]
             }
         }
