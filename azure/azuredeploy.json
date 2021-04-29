@@ -4,6 +4,7 @@
     "parameters": {
         "adminUsername": {
             "type": "string",
+            "defaultValue": "bsbmadmin",
             "metadata": {
                 "description": "Username for the Virtual Machine."
             }
@@ -21,6 +22,7 @@
         },
         "adminPasswordOrKey": {
             "type": "securestring",
+            "defaultValue": "bsbmpassword",
             "metadata": {
                 "description": "SSH Key or password for the Virtual Machine. SSH key is recommended."
             }
@@ -40,7 +42,7 @@
         },
         "vmSize": {
             "type": "string",
-            "defaultValue": "Standard_B2s",
+            "defaultValue": "Standard_D4s_v5",
             "metadata": {
                 "description": "The size of the VM"
             }
@@ -249,7 +251,7 @@
             },
             "protectedSettings": {
                 "commandToExecute": "sh install.sh",
-                "fileUris": ["https://github.com/MyProject/Archive/install.sh"]
+                "fileUris": ["https://raw.githubusercontent.com/mchaloupka/r2rml-benchmark/master/azure/install.sh"]
             }
         }
     }
