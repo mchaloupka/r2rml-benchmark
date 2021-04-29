@@ -4,7 +4,17 @@ apt update
 apt upgrade -y
 
 echo "Change directory"
-cd ~/
+mkdir /autodeploy
+cd /autodeploy
+
+echo "Install dotnet"
+wget https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+
+apt-get update; \
+apt-get install -y apt-transport-https && \
+apt-get update && \
+apt-get install -y dotnet-sdk-5.0
 
 echo "Install docker"
 curl -fsSL https://get.docker.com -o get-docker.sh
