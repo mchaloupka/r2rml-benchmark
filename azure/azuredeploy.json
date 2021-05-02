@@ -199,7 +199,8 @@
                     "createOption": "FromImage",
                     "managedDisk": {
                         "storageAccountType": "[parameters('vmDiskType')]"
-                    }
+                    },
+                    "diskSizeGB": 128
                 }
             },
             "networkProfile": {
