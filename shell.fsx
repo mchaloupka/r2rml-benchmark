@@ -3,7 +3,7 @@ module Shell
 open System
 
 let logfn format =
-  Printf.kprintf (printfn "%A: %s" System.DateTime.Now) format
+  Printf.kprintf (printfn "%A: %s" DateTime.Now) format
 
 let exec procName args =
   logfn "Shell: %s %s" procName args
@@ -11,21 +11,34 @@ let exec procName args =
   proc.StartInfo <- Diagnostics.ProcessStartInfo()
   proc.StartInfo.FileName <- procName
   proc.StartInfo.Arguments <- args
-  proc.Start() |> ignore
+  proc.StartInfo.UseShellExecute <- false
+  proc.StartInfo.RedirectStandardOutput <- true
 
-  let timeout = TimeSpan.FromHours(6.0)
-  
-  if proc.WaitForExit(timeout.TotalMilliseconds |> int) then
-    if proc.ExitCode <> 0 then 
+  let mutable lastOutput = DateTime.Now
+
+  proc.OutputDataReceived.Add(fun e ->
+    if e.Data <> null then
+      logfn "%s" e.Data
+      lastOutput <- DateTime.Now
+  )
+
+  proc.Start() |> ignore
+  proc.BeginOutputReadLine()
+
+  let maxTimeBetweenOutput = TimeSpan.FromHours(2.0)
+
+  while not(proc.WaitForExit(maxTimeBetweenOutput.TotalMilliseconds |> int)) do
+    if (DateTime.Now - lastOutput) > maxTimeBetweenOutput then
+      logfn "Timeouted"
+      proc.Kill()
+      raise (TimeoutException())
+
+  if proc.ExitCode <> 0 then 
       let error = sprintf "Error code: %d" proc.ExitCode
       logfn "%s" error
       raise (Exception(error))
     else
       logfn "OK"
-  else
-    logfn "Timeouted"
-    proc.Kill()
-    raise (TimeoutException())
 
 let execToGetOutput procName args =
   logfn "Shell: %s %s" procName args
@@ -33,6 +46,7 @@ let execToGetOutput procName args =
   proc.StartInfo <- Diagnostics.ProcessStartInfo()
   proc.StartInfo.FileName <- procName
   proc.StartInfo.Arguments <- args
+  proc.StartInfo.UseShellExecute <- false
   proc.StartInfo.RedirectStandardOutput <- true
 
   proc.Start() |> ignore

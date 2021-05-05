@@ -26,9 +26,9 @@ let generateData prodCount =
     (sprintf "bash -c \"./generate -pc %d -s sql -s mssql -s ttl && cp /bsbm/rdb2rdf/mapping.ttl /benchmark/mapping && cp /bsbm/dataset-2.ttl /bsbm/ttl-dataset\"" prodCount)
 
 let getRunCount productCount =
-  if productCount <= 10000 then 512
-  else if productCount < 500000 then 256
-  else 128
+  if productCount <= 10000 then 256
+  else if productCount < 500000 then 128
+  else 96
 
 let runSingleBenchmark runCount outputSuffix clientCount endpoint includeLog =
   let persistLogCommand = if includeLog then (sprintf " && mv run.log /benchmark/run%s.log\"" outputSuffix) else ""
