@@ -25,7 +25,7 @@ let exec procName args =
   proc.Start() |> ignore
   proc.BeginOutputReadLine()
 
-  let maxTimeBetweenOutput = TimeSpan.FromHours(2.0)
+  let maxTimeBetweenOutput = TimeSpan.FromHours(6.0)
 
   while not(proc.WaitForExit(maxTimeBetweenOutput.TotalMilliseconds |> int)) do
     if (DateTime.Now - lastOutput) > maxTimeBetweenOutput then
