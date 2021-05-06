@@ -25,13 +25,18 @@ let exec procName args =
   proc.Start() |> ignore
   proc.BeginOutputReadLine()
 
-  let maxTimeBetweenOutput = TimeSpan.FromHours(6.0)
+  let timeBetweenChecks = TimeSpan.FromMinutes(10.0)
+  let maxTimeBetweenOutput = TimeSpan.FromHours(2.0)
 
-  while not(proc.WaitForExit(maxTimeBetweenOutput.TotalMilliseconds |> int)) do
-    if (DateTime.Now - lastOutput) > maxTimeBetweenOutput then
-      logfn "Timeouted"
+  while not(proc.WaitForExit(timeBetweenChecks.TotalMilliseconds |> int)) do
+    let timeAfterLastOutput = DateTime.Now - lastOutput
+
+    if timeAfterLastOutput > maxTimeBetweenOutput then
+      logfn "Timeouted after:  %A" timeAfterLastOutput
       proc.Kill()
       raise (TimeoutException())
+    else
+      logfn "Waiting for next output for: %A" timeAfterLastOutput
 
   if proc.ExitCode <> 0 then 
       let error = sprintf "Error code: %d" proc.ExitCode
