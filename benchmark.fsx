@@ -5,7 +5,6 @@ module Benchmark
 #load "database.fsx"
 #load "endpoints.fsx"
 
-open System
 open System.IO
 open System.Text.RegularExpressions
 open System.Xml
@@ -14,6 +13,8 @@ open Shell
 open Docker
 open Database
 open Endpoints
+
+let bsbmQueryTimeoutInMs = 600000
 
 let generateData prodCount =
   inDocker "bsbm-generate" "mchaloupka/bsbm-r2rml:latest"
@@ -39,7 +40,7 @@ let runSingleBenchmark runCount outputSuffix clientCount endpoint includeLog =
     |> withMount outputDir "/benchmark"
     |> withNetwork benchmarkNetwork
     |> commandInNewContainer
-      (sprintf "bash -c \"./testdriver -mt %d -runs %d -w 32 http://%s:%d%s && mv benchmark_result.xml /benchmark/result%s.xml %s" clientCount runCount endpoint.DockerName endpoint.InnerPort endpoint.EndpointUrl outputSuffix persistLogCommand)
+      (sprintf "bash -c \"./testdriver -mt %d -t %d -runs %d -w 32 http://%s:%d%s && mv benchmark_result.xml /benchmark/result%s.xml %s" clientCount bsbmQueryTimeoutInMs runCount endpoint.DockerName endpoint.InnerPort endpoint.EndpointUrl outputSuffix persistLogCommand)
 
   try
     runBenchmark ()
@@ -72,7 +73,7 @@ let runDbBenchmark runCount outputSuffix clientCount database includeLog =
       |> withMount jdbcDir "/bsbm/jdbc"
       |> withNetwork benchmarkNetwork
       |> commandInNewContainer
-        (sprintf "bash -c \"cp ./jdbc/* ./lib && ./testdriver -mt %d -runs %d -w 32 %s && mv benchmark_result.xml /benchmark/result%s.xml %s" clientCount runCount commandPart outputSuffix persistLogCommand)
+        (sprintf "bash -c \"cp ./jdbc/* ./lib && ./testdriver -mt %d -t %d -runs %d -w 32 %s && mv benchmark_result.xml /benchmark/result%s.xml %s" clientCount bsbmQueryTimeoutInMs runCount commandPart outputSuffix persistLogCommand)
     | None -> ()
 
   try
