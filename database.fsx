@@ -20,7 +20,7 @@ let dbName = function
 
 let databaseDockerName = "database"
 
-let msSqlImageName = "mcr.microsoft.com/mssql/server:2017-latest"
+let msSqlImageName = "mcr.microsoft.com/mssql/server:2022-latest"
 let mySqlImageName = "mysql:latest"
 
 let startDatabaseContainer = function

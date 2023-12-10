@@ -13,6 +13,10 @@ To run the benchmark, run the following commands:
 dotnet fsi main.fsx
 ```
 
+It is possible to run it with different configurations:
+* `dotnet fsi main.fsx quick` - to run a quick variant to verify that the benchmark can run on your system
+* `dotnet fsi main.fsx upper` - to run a variant with largest product count
+
 ## Filling database / running endpoints
 It is possible also to run also parts of the scripts, using the F# interactive console.
 
@@ -64,7 +68,7 @@ Benchmark.runSingleBenchmark 128 "log-file-suffix" 1 eviEndpoint false;;
 
 In the end, you have to also stop the docker containers and remove network:
 ```
-stopAndRemoveContainer eviEndpoint.dockerName
+stopAndRemoveContainer eviEndpoint.DockerName
 stopAndRemoveContainer databaseDockerName
 removeNetwork benchmarkNetwork
 ;;

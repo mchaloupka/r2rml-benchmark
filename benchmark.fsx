@@ -260,7 +260,7 @@ let defaultBenchmarkConfiguration = {
 let quickTestBenchmarkConfiguration = {
   defaultBenchmarkConfiguration with
     ProductCounts = defaultBenchmarkConfiguration.ProductCounts |> List.head |> List.singleton
-    ClientCounts = defaultBenchmarkConfiguration.ClientCounts |> List.head |> List.singleton
+    ClientCounts = defaultBenchmarkConfiguration.ClientCounts |> List.rev |> List.head |> List.singleton
     IncludeLogs = true
 }
 

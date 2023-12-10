@@ -23,7 +23,7 @@ type Endpoint = {
 
 let eviEndpoint = 
   let dockerName = "evi-endpoint"
-  let innerPort = 80
+  let innerPort = 8080
   let outerPort = 5000
   let imageName = "mchaloupka/slp.evi:latest"
   
@@ -57,7 +57,7 @@ let ontopEndpoint =
   let dockerName = "ontop-endpoint"
   let innerPort = 8080
   let outerPort = 5051
-  let imageName = "ontop/ontop-endpoint:4.1"
+  let imageName = "ontop/ontop"
 
   let propertiesFile = function
   | WithoutRdb -> NotSupportedException "Unsupported without DB" |> raise
