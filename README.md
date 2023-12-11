@@ -5,7 +5,7 @@ Scripting to perform a benchmark of virtual SPARQL endpoints based on R2RML mapp
 * Docker
 * .NET Core SDK 5 or newer
 
-Has been currently tested only on Windows. Should be easy to add support for other platforms, please create a pull request if you want to add support.
+Has been currently tested only on Windows and Linux. Should be easy to add support for other platforms, please create a pull request if it does not work on other platforms.
 
 ## Running the benchmark
 To run the benchmark, run the following commands:
