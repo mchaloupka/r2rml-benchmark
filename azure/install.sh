@@ -28,3 +28,6 @@ sudo chown -R $USER: /autodeploy
 echo "Add user to docker group"
 sudo usermod -aG docker $USER
 newgrp docker
+
+echo "Install tmux"
+apt install tmux
