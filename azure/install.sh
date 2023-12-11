@@ -13,6 +13,7 @@ echo "Install dotnet"
 wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
 chmod +x ./dotnet-install.sh
 ./dotnet-install.sh --version latest
+rm ./dotnet-install.sh
 
 echo "Install docker"
 curl -fsSL https://get.docker.com -o get-docker.sh
@@ -31,3 +32,7 @@ newgrp docker
 
 echo "Install tmux"
 apt install tmux
+
+echo '' >> ~/.bashrc 
+echo 'export DOTNET_ROOT=$HOME/.dotnet' >> ~/.bashrc 
+echo 'export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools' >> ~/.bashrc 
