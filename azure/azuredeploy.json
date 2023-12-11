@@ -28,7 +28,7 @@
         },
         "vmSize": {
             "type": "string",
-            "defaultValue": "Standard_D4s_v4",
+            "defaultValue": "Standard_D4s_v5",
             "metadata": {
                 "description": "The size of the VM"
             }
@@ -189,8 +189,8 @@
             "storageProfile": {
                 "imageReference": {
                     "publisher": "Canonical",
-                    "offer": "UbuntuServer",
-                    "sku": "18.04-LTS",
+                    "offer": "0001-com-ubuntu-server-jammy",
+                    "sku": "22_04-lts-gen2",
                     "version": "latest"
                 },
                 "osDisk": {
