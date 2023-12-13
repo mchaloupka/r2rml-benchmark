@@ -78,3 +78,7 @@ To close the interactive session, just write:
 ```
 #quit;;
 ```
+
+## Running the benchmark in Azure
+
+For simplicity, we have also included a simple way how to run the benchmark using hw placed in Azure: [guidance](https://github.com/mchaloupka/r2rml-benchmark/tree/master/azure).

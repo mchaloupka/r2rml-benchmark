@@ -5,7 +5,9 @@
 First, it is necessary to deploy all necessary hardware. That can be achieved
 by using the Azure custom template.
 
-To do so, use `Deploy Custom Template` functionality. When deploying from the template, you have to:
+To do so, use `Deploy Custom Template` functionality. Use edit or upload the template, and provide the content of the `azuredeploy.json` file.
+
+When deploying from the template, you have to:
 
 * Select the subscription.
 * Ideally create a new resource group so you can easily clean-up everything afterwards.
