@@ -32,3 +32,17 @@ To enter tmux, just run `tmux` command.
 To run the benchmark, just run the `dotnet fsi main.fsx`.
 
 You can detach from your tmux session by pressing `Ctrl+B` then `D`. Then you can even disconnect from the machine and the benchmark will be still running. Using command `tmux ls` it is possible to list active sessions, and then using `tmux attach -t <id>` to attach again to a seesion `<id>` (most likely 0 if you have just the one you detached before).
+
+## Downloading measure results
+
+When the benchmark is completed on the server, it is possible to use the following command to download all the results:
+
+```
+scp <user>@<ipaddress>:/autodeploy/r2rml-benchmark/output/* ./
+```
+
+The `<user>` and `<ipaddress>` are the same as the ones you have used for the `ssh` command.
+
+## Deleting resources from Azure
+
+The simplest way to delete everything created when following this manual is through Azure portal. Find the corresponding resource group created when performing the deployment. Then by deleting the resource group you will delete all resources created under it.
