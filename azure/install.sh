@@ -33,6 +33,6 @@ newgrp docker
 echo "Install tmux"
 apt install tmux
 
-echo '' >> ~/.bashrc 
-echo 'export DOTNET_ROOT=$HOME/.dotnet' >> ~/.bashrc 
-echo 'export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools' >> ~/.bashrc 
+echo '' >> /home/$USER/.bashrc 
+echo 'export DOTNET_ROOT=$HOME/.dotnet' >> /home/$USER/.bashrc 
+echo 'export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools' >> /home/$USER/.bashrc 
