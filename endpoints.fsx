@@ -33,20 +33,24 @@ let eviEndpoint =
     OuterPort = outerPort
     DockerName = dockerName
     EndpointUrl = "/api/sparql"
-    SupportedDatabases = MsSql |> List.singleton
-    Start = 
-      function
-        | MsSql ->
-          inDocker dockerName imageName
-          |> withMount mappingDir "/benchmark/mapping"
-          |> withEnv "EVI_STORAGE__MAPPINGFILEPATH" "/benchmark/mapping/mapping.ttl"
-          |> withEnv "EVI_STORAGE__CONNECTIONSTRING" "Server=database,1433;Database=benchmark;User Id=sa;Password=p@ssw0rd"
-          |> withPort outerPort innerPort
-          |> withNetwork benchmarkNetwork
-          |> startContainerDetached
+    SupportedDatabases = [ MsSql; MySql ]
+    Start = fun database ->
+      let databaseType, connectionString =
+        match database with
+        | MsSql -> "MsSql", "Server=database,1433;Database=benchmark;User Id=sa;Password=p@ssw0rd"
+        | MySql -> "MySql", "Server=database;Port=3306;User ID=root;Password=psw;Database=benchmark"
+        | _ -> failwithf "Not supported database: %A" database
 
-          Threading.Thread.Sleep(20000)
-        | _ -> raise (new NotSupportedException())
+      inDocker dockerName imageName
+      |> withMount mappingDir "/benchmark/mapping"
+      |> withEnv "EVI_STORAGE__DATABASETYPE" databaseType
+      |> withEnv "EVI_STORAGE__MAPPINGFILEPATH" "/benchmark/mapping/mapping.ttl"
+      |> withEnv "EVI_STORAGE__CONNECTIONSTRING" connectionString
+      |> withPort outerPort innerPort
+      |> withNetwork benchmarkNetwork
+      |> startContainerDetached
+
+      Threading.Thread.Sleep(20000)
     GetVersion = fun () ->
       inDocker dockerName imageName
       |> outputOfCommandInNewContainer "--version"
