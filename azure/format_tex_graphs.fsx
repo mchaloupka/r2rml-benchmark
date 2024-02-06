@@ -26,6 +26,7 @@ let mySqlConfig = { Label = "MySQL"; DatabaseValue = "mysql"; EndpointValue = "d
 let msSqlConfig = { Label = "MS SQL"; DatabaseValue = "mssql"; EndpointValue = "db" }
 let ontopMySqlConfig = { Label = "Ontop - MySQL"; DatabaseValue = "mysql"; EndpointValue = "ontop" }
 let ontopMsSqlConfig = { Label = "Ontop - MS SQL"; DatabaseValue = "mssql"; EndpointValue = "ontop" }
+let eviMySqlConfig = { Label = "EVI - MySQL"; DatabaseValue = "mysql"; EndpointValue = "evi" }
 let eviMsSqlConfig = { Label = "EVI - MS SQL"; DatabaseValue = "mssql"; EndpointValue = "evi" }
 let virtuosoConfig = { Label = "Virtuoso"; DatabaseValue = "none"; EndpointValue = "virtuoso" }
 
@@ -46,7 +47,7 @@ let graphs = [
     {
         XAxis = datasetScaleAxis
         YAxis = qmphAxis
-        Databases = [ mySqlConfig; virtuosoConfig; ontopMySqlConfig ]
+        Databases = [ mySqlConfig; virtuosoConfig; ontopMySqlConfig; eviMySqlConfig ]
         Filter = clientCountFilter 1
         IsSmallGraph = true
         Label = "Query mixes per hour using 1 client"
@@ -66,7 +67,7 @@ let graphs = [
     {
         XAxis = clientCountAxis
         YAxis = qmphAxis
-        Databases = [ mySqlConfig; virtuosoConfig; ontopMySqlConfig ]
+        Databases = [ mySqlConfig; virtuosoConfig; ontopMySqlConfig; eviMySqlConfig ]
         Filter = datasetScaleFilter 10000
         IsSmallGraph = true
         Label = "Query mixes per hour using dataset scale 10000"
@@ -77,20 +78,20 @@ let graphs = [
         XAxis = datasetScaleAxis
         YAxis = qmphAxis
         Databases = [ msSqlConfig; virtuosoConfig; ontopMsSqlConfig; eviMsSqlConfig ]
-        Filter = clientCountFilter 16
+        Filter = clientCountFilter 8
         IsSmallGraph = false
-        Label = "Query mixes per hour using 16 clients"
-        TexLabel = "performance:qmph16client:mssql"
+        Label = "Query mixes per hour using 8 clients"
+        TexLabel = "performance:qmph8client:mssql"
         LegendPos = "north east"
     }
     {
         XAxis = datasetScaleAxis
         YAxis = qmphAxis
-        Databases = [ mySqlConfig; virtuosoConfig; ontopMySqlConfig ]
-        Filter = clientCountFilter 16
+        Databases = [ mySqlConfig; virtuosoConfig; ontopMySqlConfig; eviMySqlConfig ]
+        Filter = clientCountFilter 8
         IsSmallGraph = false
-        Label = "Query mixes per hour using 16 clients"
-        TexLabel = "performance:qmph16client:mysql"
+        Label = "Query mixes per hour using 8 clients"
+        TexLabel = "performance:qmph8client:mysql"
         LegendPos = "north east"
     }
 ]
