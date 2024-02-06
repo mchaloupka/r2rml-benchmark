@@ -1,6 +1,6 @@
-evi,EVI version: 0.0.9.682
-ontop,ontop version 5.1.1
+evi,EVI version: 0.0.10.730
+ontop,ontop version 5.1.2
 virtuoso,This Docker image is using the following version of Virtuoso: :: Virtuoso Open Source Edition (Column Store) (multi threaded) :: Version 7.2.11.3238-pthreads as of Sep 26 2023 (d89671fa1) :: Compiled for Linux (x86_64-ubuntu_bionic-linux-gnu) :: Copyright (C) 1998-2023 OpenLink Software
-mssql,Version 16.0.4095.4
-mysql,Ver 8.2.0 for Linux on x86_64 (MySQL Community Server - GPL)
+mssql,Version 16.0.4105.2
+mysql,Ver 8.3.0 for Linux on x86_64 (MySQL Community Server - GPL)
 
