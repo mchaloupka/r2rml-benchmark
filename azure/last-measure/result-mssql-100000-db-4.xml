@@ -5,22 +5,22 @@
      <nrthreads>4</nrthreads>
      <seed>808080</seed>
      <querymixruns>256</querymixruns>
-     <minquerymixruntime>2.3207</minquerymixruntime>
-     <maxquerymixruntime>6.2603</maxquerymixruntime>
-     <totalruntime>1262.367</totalruntime>
-     <actualtotalruntime>317.057</actualtotalruntime>
-     <qmph>2906.73</qmph>
-     <cqet>4.93112</cqet>
-     <cqetg>4.80026</cqetg>
+     <minquerymixruntime>3.5527</minquerymixruntime>
+     <maxquerymixruntime>5.4672</maxquerymixruntime>
+     <totalruntime>1252.151</totalruntime>
+     <actualtotalruntime>314.295</actualtotalruntime>
+     <qmph>2932.28</qmph>
+     <cqet>4.89121</cqet>
+     <cqetg>4.88428</cqetg>
   </querymix>
   <queries>
     <query nr="1">
       <executecount>256</executecount>
-      <aqet>0.021325</aqet>
-      <aqetg>0.017620</aqetg>
-      <qps>186.71</qps>
-      <minqet>0.00615559</minqet>
-      <maxqet>0.05774168</maxqet>
+      <aqet>0.016095</aqet>
+      <aqetg>0.013749</aqetg>
+      <qps>247.53</qps>
+      <minqet>0.00603565</minqet>
+      <maxqet>0.04521465</maxqet>
       <avgresults>4.07</avgresults>
       <minresults>0</minresults>
       <maxresults>10</maxresults>
@@ -28,11 +28,11 @@
     </query>
     <query nr="2">
       <executecount>1536</executecount>
-      <aqet>0.005470</aqet>
-      <aqetg>0.003507</aqetg>
-      <qps>727.91</qps>
-      <minqet>0.00049501</minqet>
-      <maxqet>0.02043209</maxqet>
+      <aqet>0.004048</aqet>
+      <aqetg>0.002655</aqetg>
+      <qps>984.14</qps>
+      <minqet>0.00050620</minqet>
+      <maxqet>0.04746070</maxqet>
       <avgresults>19.30</avgresults>
       <minresults>7</minresults>
       <maxresults>37</maxresults>
@@ -40,11 +40,11 @@
     </query>
     <query nr="3">
       <executecount>256</executecount>
-      <aqet>0.020821</aqet>
-      <aqetg>0.017402</aqetg>
-      <qps>191.23</qps>
-      <minqet>0.00589429</minqet>
-      <maxqet>0.04618925</maxqet>
+      <aqet>0.016772</aqet>
+      <aqetg>0.014322</aqetg>
+      <qps>237.54</qps>
+      <minqet>0.00608235</minqet>
+      <maxqet>0.04521498</maxqet>
       <avgresults>2.53</avgresults>
       <minresults>0</minresults>
       <maxresults>10</maxresults>
@@ -52,11 +52,11 @@
     </query>
     <query nr="4">
       <executecount>256</executecount>
-      <aqet>0.021414</aqet>
-      <aqetg>0.017803</aqetg>
-      <qps>185.93</qps>
-      <minqet>0.00592266</minqet>
-      <maxqet>0.05355489</maxqet>
+      <aqet>0.017544</aqet>
+      <aqetg>0.015094</aqetg>
+      <qps>227.08</qps>
+      <minqet>0.00596615</minqet>
+      <maxqet>0.04665967</maxqet>
       <avgresults>0.87</avgresults>
       <minresults>0</minresults>
       <maxresults>10</maxresults>
@@ -64,11 +64,11 @@
     </query>
     <query nr="5">
       <executecount>512</executecount>
-      <aqet>0.247918</aqet>
-      <aqetg>0.242739</aqetg>
-      <qps>16.06</qps>
-      <minqet>0.08685999</minqet>
-      <maxqet>0.41596776</maxqet>
+      <aqet>0.258218</aqet>
+      <aqetg>0.253548</aqetg>
+      <qps>15.43</qps>
+      <minqet>0.16255658</minqet>
+      <maxqet>0.51767420</maxqet>
       <avgresults>4.99</avgresults>
       <minresults>3</minresults>
       <maxresults>5</maxresults>
@@ -80,11 +80,11 @@
     </query>
     <query nr="7">
       <executecount>1024</executecount>
-      <aqet>0.727542</aqet>
-      <aqetg>0.684070</aqetg>
-      <qps>5.47</qps>
-      <minqet>0.07783289</minqet>
-      <maxqet>1.07154548</maxqet>
+      <aqet>0.721398</aqet>
+      <aqetg>0.698336</aqetg>
+      <qps>5.52</qps>
+      <minqet>0.07632900</minqet>
+      <maxqet>1.17875565</maxqet>
       <avgresults>12.59</avgresults>
       <minresults>1</minresults>
       <maxresults>92</maxresults>
@@ -92,11 +92,11 @@
     </query>
     <query nr="8">
       <executecount>512</executecount>
-      <aqet>0.185864</aqet>
-      <aqetg>0.171340</aqetg>
-      <qps>21.42</qps>
-      <minqet>0.05769026</minqet>
-      <maxqet>0.41861679</maxqet>
+      <aqet>0.168799</aqet>
+      <aqetg>0.160217</aqetg>
+      <qps>23.60</qps>
+      <minqet>0.05602644</minqet>
+      <maxqet>0.38196358</maxqet>
       <avgresults>5.38</avgresults>
       <minresults>0</minresults>
       <maxresults>19</maxresults>
@@ -104,11 +104,11 @@
     </query>
     <query nr="9">
       <executecount>1024</executecount>
-      <aqet>0.157014</aqet>
-      <aqetg>0.152557</aqetg>
-      <qps>25.36</qps>
-      <minqet>0.05107491</minqet>
-      <maxqet>0.33874912</maxqet>
+      <aqet>0.161295</aqet>
+      <aqetg>0.156824</aqetg>
+      <qps>24.70</qps>
+      <minqet>0.05143961</minqet>
+      <maxqet>0.35081111</maxqet>
       <avgresults>22.08</avgresults>
       <minresults>1</minresults>
       <maxresults>42</maxresults>
@@ -116,11 +116,11 @@
     </query>
     <query nr="10">
       <executecount>512</executecount>
-      <aqet>0.209236</aqet>
-      <aqetg>0.198195</aqetg>
-      <qps>19.03</qps>
-      <minqet>0.07704301</minqet>
-      <maxqet>0.46739430</maxqet>
+      <aqet>0.212409</aqet>
+      <aqetg>0.203674</aqetg>
+      <qps>18.76</qps>
+      <minqet>0.07793081</minqet>
+      <maxqet>0.49580255</maxqet>
       <avgresults>2.00</avgresults>
       <minresults>0</minresults>
       <maxresults>9</maxresults>
@@ -128,11 +128,11 @@
     </query>
     <query nr="11">
       <executecount>256</executecount>
-      <aqet>0.005291</aqet>
-      <aqetg>0.002984</aqetg>
-      <qps>752.52</qps>
-      <minqet>0.00036490</minqet>
-      <maxqet>0.02045992</maxqet>
+      <aqet>0.003507</aqet>
+      <aqetg>0.001820</aqetg>
+      <qps>1136.00</qps>
+      <minqet>0.00034350</minqet>
+      <maxqet>0.01808726</maxqet>
       <avgresults>1.00</avgresults>
       <minresults>1</minresults>
       <maxresults>1</maxresults>
@@ -140,11 +140,11 @@
     </query>
     <query nr="12">
       <executecount>256</executecount>
-      <aqet>0.005190</aqet>
-      <aqetg>0.002634</aqetg>
-      <qps>767.08</qps>
-      <minqet>0.00027890</minqet>
-      <maxqet>0.01681858</maxqet>
+      <aqet>0.003384</aqet>
+      <aqetg>0.001517</aqetg>
+      <qps>1177.31</qps>
+      <minqet>0.00027570</minqet>
+      <maxqet>0.01448562</maxqet>
       <avgresults>1.00</avgresults>
       <minresults>1</minresults>
       <maxresults>1</maxresults>
